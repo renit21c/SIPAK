@@ -1,5 +1,4 @@
 import {useCallback,useEffect,useRef,useState,type ReactNode} from 'react';
-import {Volume2,VolumeX} from 'lucide-react';
 import './web-intro.css';
 
 type Phase='playing'|'leaving'|'done';
@@ -10,7 +9,7 @@ function initialPhase():Phase{
 
 export function WebIntro({children}:{children:ReactNode}){
  const [phase,setPhase]=useState<Phase>(initialPhase),[muted,setMuted]=useState(false);
- const video=useRef<HTMLVideoElement>(null),content=useRef<HTMLDivElement>(null),overlay=useRef<HTMLDivElement>(null);
+ const video=useRef<HTMLVideoElement>(null),content=useRef<HTMLDivElement>(null);
  const hadIntro=useRef(phase!=='done');
  const visible=phase!=='done';
  useEffect(()=>{
@@ -43,21 +42,11 @@ export function WebIntro({children}:{children:ReactNode}){
   const change=()=>{if(preference.matches){video.current?.pause();finish();setPhase('done')}};
   preference.addEventListener('change',change);return()=>preference.removeEventListener('change',change);
  },[finish]);
- const skip=()=>{video.current?.pause();finish()};
  const active=phase!=='done'&&phase!=='leaving';
  return <>
   <div ref={content} className={'intro-web-content '+(active?'intro-web-hidden':'intro-web-visible')} inert={active} aria-hidden={active||undefined}>{children}</div>
-  {phase!=='done'&&<div ref={overlay} className={'web-intro '+(phase==='leaving'?'web-intro-leaving':'')} role="dialog" aria-modal={phase!=='leaving'} aria-label="Intro SIPAK" onTransitionEnd={e=>{if(e.target===e.currentTarget&&e.propertyName==='opacity'&&phase==='leaving')setPhase('done')}} onKeyDown={e=>{
-   if(e.key==='Escape'){e.preventDefault();skip()}
-   if(e.key==='Tab'){
-    const buttons=overlay.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)');if(!buttons?.length)return;
-    const first=buttons[0],last=buttons[buttons.length-1];
-    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
-    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
-   }
-  }}>
+  {phase!=='done'&&<div className={'web-intro '+(phase==='leaving'?'web-intro-leaving':'')} role="status" aria-label="Intro SIPAK" onTransitionEnd={e=>{if(e.target===e.currentTarget&&e.propertyName==='opacity'&&phase==='leaving')setPhase('done')}}>
    <video ref={video} src="/intro/sipak-intro.mp4" poster="/intro/poster.jpg" autoPlay muted={muted} playsInline preload="auto" disablePictureInPicture aria-hidden="true" onEnded={finish} onError={finish} onTimeUpdate={()=>{if(video.current&&video.current.currentTime>=4.42)finish()}}/>
-   {phase!=='leaving'&&<div className="intro-controls"><button className="intro-sound" aria-label={muted?'Aktifkan suara':'Bisukan suara'} onClick={()=>{const player=video.current;if(player){player.muted=!muted;setMuted(!muted);player.play().catch(finish)}}}>{muted?<VolumeX size={20}/>:<Volume2 size={20}/>}</button><button className="intro-skip" autoFocus onClick={skip}>Lewati</button></div>}
   </div>}
  </>;
 }

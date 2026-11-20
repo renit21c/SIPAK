@@ -35,23 +35,17 @@ def angle_at(t):
 cache={}
 def scene_at(t):
  intro=out((t-.12)/.7);settle=ease((t-2.23)/.75)
- scale=mix(1.12,.67,settle)*mix(.94,1,intro)
+ scale=.72*mix(.94,1,intro)
  key='final' if t>=2.98 else None
  if key in cache:return cache[key]
  scene=base.copy();scene.alpha_composite(gavel.rotate(-angle_at(t),Image.Resampling.BICUBIC,center=(1060*S,500*S)))
  scene=scene.resize((round(1400*scale),round(900*scale)),Image.Resampling.LANCZOS)
  if intro<1:scene.putalpha(scene.getchannel('A').point(lambda v:round(v*intro)))
- pos=(round((W-scene.width)/2),round(mix(-35,5,settle)+mix(22,0,intro)))
+ pos=(round(W/2-790*scale),round(H/2-570*scale))
  if key:cache[key]=(scene,pos)
  return scene,pos
 def frame(t,fade=True):
  image=Image.new('RGBA',(W,H),NAVY+(255,));scene,pos=scene_at(t);image.alpha_composite(scene,pos)
- title=out((t-2.68)/.65)
- if title:
-  layer=Image.new('RGBA',image.size);ld=ImageDraw.Draw(layer)
-  tracked(ld,'SIPAK',mix(688,655,title),font,19,WHITE+(round(255*title),))
-  tracked(ld,'KOMISI DISIPLIN',838,small,7,(216,220,240,round(220*ease((t-3.1)/.55))))
-  image.alpha_composite(layer)
  if fade and t>4.42:
   cover=Image.new('RGBA',image.size,NAVY+(round(255*ease((t-4.42)/.75)),));image.alpha_composite(cover)
  return image.convert('RGB')
@@ -107,7 +101,7 @@ if __name__=='__main__':
   shutil.copy2(ROOT/'sipak-intro-white-web.mp4',ROOT.parents[1]/'public'/'intro'/'sipak-intro.mp4')
   print('Updated stereo wood impact, room reflections and echo. Video frames unchanged.',flush=True)
   raise SystemExit(0)
- frame(1.38).save(ROOT/'impact.jpg',quality=94);frame(4,False).save(ROOT/'poster.jpg',quality=94)
+ frame(1.38).save(ROOT/'impact.jpg',quality=94);frame(4,False).crop((420,0,1500,1080)).resize((720,720),Image.Resampling.LANCZOS).save(ROOT/'poster.jpg',quality=94)
  cmd=[FFMPEG,'-y','-f','rawvideo','-vcodec','rawvideo','-s',f'{W}x{H}','-pix_fmt','rgb24','-r',str(FPS),'-i','-','-i',str(audio),'-c:v','libx264','-preset','medium','-crf','18','-pix_fmt','yuv420p','-c:a','aac','-b:a','160k','-movflags','+faststart','-shortest',str(output)]
  with (ROOT/'encoding.log').open('w') as log:
   p=subprocess.Popen(cmd,stdin=subprocess.PIPE,stdout=log,stderr=log)
@@ -117,7 +111,7 @@ if __name__=='__main__':
   p.stdin.close();result=p.wait()
  if result:raise SystemExit('Encoding failed')
  web=ROOT/'sipak-intro-white-web.mp4'
- subprocess.run([FFMPEG,'-y','-i',str(output),'-vf','scale=1280:720','-c:v','libx264','-crf','23','-preset','medium','-pix_fmt','yuv420p','-c:a','aac','-b:a','128k','-movflags','+faststart',str(web)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+ subprocess.run([FFMPEG,'-y','-i',str(output),'-vf','crop=1080:1080:420:0,scale=720:720','-c:v','libx264','-crf','23','-preset','medium','-pix_fmt','yuv420p','-c:a','aac','-b:a','128k','-movflags','+faststart',str(web)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  import shutil
  target=ROOT.parents[1]/'public'/'intro';target.mkdir(parents=True,exist_ok=True)
  shutil.copy2(web,target/'sipak-intro.mp4');shutil.copy2(ROOT/'poster.jpg',target/'poster.jpg')

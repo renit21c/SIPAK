@@ -7,4 +7,5 @@ import './motion.css';
 import './login.css';
 import './komdis.css';
 import './scrollbars.css';
+import './findings.css';
 createRoot(document.getElementById('root')!).render(<React.StrictMode><WebIntro><App/></WebIntro></React.StrictMode>);
