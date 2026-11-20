@@ -30,9 +30,11 @@ Implementasi awal ini dimulai dari direktori kosong. Tidak ada gambar referensi 
 ## Pemeriksaan yang dijalankan
 
 - `npm.cmd run build`: pemeriksaan TypeScript dan build Vite.
-- `python -m pytest backend/tests -q`: 52 pengujian integrasi/unit meliputi keamanan sesi/peran, PDF, sumber, chunking, kegagalan model, verifikasi/revisi, versi regulasi, matching berbasis kondisi, migrasi akun, arsip keputusan, evaluasi/revisi, dan watermark PDF rekomendasi.
+- `python -m pytest backend/tests -q`: 63 pengujian integrasi/unit meliputi keamanan sesi/peran, PDF, sumber, chunking, kegagalan model, verifikasi/revisi, versi regulasi, matching berbasis kondisi, migrasi akun, arsip keputusan, evaluasi/revisi, dan watermark PDF rekomendasi.
 - Browser lokal: login, delapan menu utama, status kosong dan konfigurasi belum terhubung; tata letak desktop 1440 px dan mobile 390 px serta interaksi menu mobile.
 
 Lihat README untuk penyiapan akun, konfigurasi, perintah pengujian dan batas penerapan.
 
 Deployment: Dockerfile multi-stage dan panduan Railway sudah disiapkan. Build frontend serta normalisasi DATABASE_URL diuji lokal. Image Docker belum dibuild karena Linux engine Docker Desktop tidak aktif; layanan cloud belum dibuat atau dipublikasikan.
+
+Pembaruan evaluasi: draf AI bersumber, dropdown seluruh pasal terverifikasi, kategori/sanksi dari pencocokan lengkap, konfirmasi telaah manusia, dan penyimpanan draf terpisah dari persetujuan. Revisi BAP/penilaian/regulasi diperiksa ulang setelah inferensi. Kop IPDN bawaan menggunakan logo dan alamat yang disediakan pengguna; dapat diedit di Pengaturan. PDF A4 tanpa tanda tangan, snapshot kop/pasal, lampiran sumber dan watermark per halaman. Pengujian memakai transport dan BAP sintetis; tidak ada BAP nyata atau kredit API pengguna yang dipakai. Pratinjau PDF tiga halaman diperiksa melalui render Poppler; form desktop/mobile 390 px dan alur draf → pasal → konfirmasi → PDF diperiksa di browser.

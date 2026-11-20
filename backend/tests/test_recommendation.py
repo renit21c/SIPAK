@@ -3,7 +3,7 @@ from backend.tests.test_sipak import verify
 
 
 def evaluation(case,**changes):
-    return {'outcome':'proceed','summary':'Data sintetis sudah ditelaah terhadap sumber BAP.','recommendation':'Lengkapi pembinaan berdasarkan hasil rapat Komdis sintetis.','basis':'Pertimbangan sintetis dengan mengacu pada BAP halaman satu.','category':'Belum ditentukan','sanction':'','expected_revision':case['revision'],'expected_assessment_id':case['latest_assessment_id'],**changes}
+    return {'human_reviewed':True,'outcome':'proceed','summary':'Data sintetis sudah ditelaah terhadap sumber BAP.','recommendation':'Lengkapi pembinaan berdasarkan hasil rapat Komdis sintetis.','basis':'Pertimbangan sintetis dengan mengacu pada BAP halaman satu.','category':'Belum ditentukan','sanction':'','expected_revision':case['revision'],'expected_assessment_id':case['latest_assessment_id'],**changes}
 
 
 def test_verified_evaluation_to_watermarked_recommendation(case,client):

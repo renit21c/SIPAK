@@ -21,6 +21,8 @@ from .services.regulations import split_articles, classify
 from .services.reports import generate_report, generate_recommendation
 from .services.builtin_regulation import seed_builtin_regulation, builtin_metadata, BUILTIN_ID
 from .services.ai_provider import snapshot,public_config,save_configuration,ensure_ready,check_openrouter,OPENROUTER_URL
+from .services.letterhead import read_letterhead,save_letterhead
+from .services.evaluation_draft import article_options,resolve_articles,generate_draft
 import httpx
 
 @asynccontextmanager
@@ -141,6 +143,20 @@ async def check_ai(user:User=Depends(require('users'))):
         except ValueError as exc: raise HTTPException(400,str(exc))
     return await system_settings(user)
 
+@app.get('/api/settings/letterhead')
+def letterhead(user:User=Depends(require('read')),db:DBSession=Depends(get_db)):
+    return read_letterhead(db)
+
+@app.put('/api/settings/letterhead')
+def update_letterhead(data:Letterhead,user:User=Depends(require('users')),db:DBSession=Depends(get_db)):
+    try: result=save_letterhead(db,data)
+    except ValueError as exc: raise HTTPException(422,str(exc))
+    audit(db,user,'letterhead_updated','settings');db.commit();return result
+
+@app.get('/api/evaluation/articles')
+def evaluation_articles(user:User=Depends(require('read')),db:DBSession=Depends(get_db)):
+    return article_options(db)
+
 def authorized_inference(data:InferenceConsent):
     config=snapshot(authorized=data.cloud_consent)
     if config.external and not data.cloud_consent:
@@ -241,6 +257,28 @@ def note(case_id:str,data:Note,user:User=Depends(require('review')),db:DBSession
     if data.kind=='commission_recommendation': case.status='Rekomendasi Diterbitkan'
     audit(db,user,data.kind,case.id); db.commit(); return {'ok':True}
 
+@app.post('/api/cases/{case_id}/evaluation/draft')
+async def evaluation_draft(case_id:str,data:EvaluationDraftRequest,user:User=Depends(require('review')),db:DBSession=Depends(get_db)):
+    case=get_case(db,case_id);ensure_mutable(db,case)
+    current=case_dict(db,case,True)
+    if not case.verified: raise HTTPException(409,'Verifikasi fakta BAP sebelum membuat draf evaluasi.')
+    if data.expected_revision!=case.revision or data.expected_assessment_id!=current['latest_assessment_id']:
+        raise HTTPException(409,'Data berubah. Muat ulang sebelum membuat draf.')
+    config=authorized_inference(data)
+    options=article_options(db)
+    audit_inference_consent(db,user,case.document_id,config);db.commit()
+    try: draft=await generate_draft(current,options,config)
+    except ValueError as exc: raise HTTPException(422,str(exc))
+    db.expire_all();case=get_case(db,case_id);ensure_mutable(db,case)
+    updated=case_dict(db,case,True)
+    if not case.verified or case.revision!=data.expected_revision or updated['latest_assessment_id']!=data.expected_assessment_id or article_options(db)!=options:
+        raise HTTPException(409,'BAP atau regulasi berubah saat AI bekerja. Buat ulang draf dari data terbaru.')
+    try: articles=resolve_articles(db,draft['article_ids'])
+    except ValueError as exc: raise HTTPException(422,str(exc))
+    record=Record(case_id=case.id,created_by=user.id,kind='ai_evaluation_draft',payload={**draft,'revision':case.revision,'assessment_id':updated['latest_assessment_id'],'articles':articles,'provider':config.provider,'model':config.model})
+    db.add(record);db.flush();audit(db,user,'evaluation_draft_generated',case.id,{'draft_id':record.id,'revision':case.revision,'provider':config.provider,'model':config.model});db.commit()
+    return {**draft,'id':record.id,'revision':case.revision,'assessment_id':updated['latest_assessment_id'],'articles':articles}
+
 @app.post('/api/cases/{case_id}/evaluation')
 def evaluate(case_id:str,data:Evaluation,user:User=Depends(require('review')),db:DBSession=Depends(get_db)):
     case=get_case(db,case_id); ensure_mutable(db,case)
@@ -250,9 +288,17 @@ def evaluate(case_id:str,data:Evaluation,user:User=Depends(require('review')),db
     if len(data.summary)<10: raise HTTPException(422,'Ringkasan evaluasi minimal 10 karakter.')
     if data.outcome=='proceed':
         if not case.verified: raise HTTPException(409,'Verifikasi hasil BAP sebelum melanjutkan ke rekomendasi.')
+        if not data.human_reviewed: raise HTTPException(422,'Konfirmasikan bahwa Komdis telah menelaah isi rekomendasi.')
         if len(data.recommendation)<10 or len(data.basis)<10:
             raise HTTPException(422,'Lengkapi rekomendasi dan dasar pertimbangan, minimal 10 karakter masing-masing.')
+    try: articles=resolve_articles(db,data.article_ids)
+    except ValueError as exc: raise HTTPException(422,str(exc))
+    if data.ai_draft_id:
+        draft=db.get(Record,data.ai_draft_id)
+        if not draft or draft.case_id!=case.id or draft.kind!='ai_evaluation_draft' or draft.payload['revision']!=case.revision or draft.payload['assessment_id']!=current['latest_assessment_id']:
+            raise HTTPException(409,'Draf AI sudah tidak sesuai revisi perkara. Buat ulang draf.')
     payload=data.model_dump(exclude={'expected_revision','expected_assessment_id'})
+    payload.update(articles=articles,letterhead=read_letterhead(db))
     payload.update(revision=case.revision,assessment_id=current['latest_assessment_id'])
     db.add(Record(case_id=case.id,created_by=user.id,kind='evaluation',payload=payload))
     if data.outcome=='revise': case.verified=False

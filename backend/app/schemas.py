@@ -90,6 +90,40 @@ class UserCreate(Login):
     name: str = Field(min_length=2,max_length=200)
     role: Literal['komdis'] = 'komdis'
 
+class Letterhead(Strict):
+    parent_name: str = Field(default='',max_length=180)
+    institution_name: str = Field(default='',max_length=180)
+    unit_name: str = Field(default='Komisi Disiplin',max_length=180)
+    address: str = Field(default='',max_length=400)
+    contact: str = Field(default='',max_length=250)
+    place: str = Field(default='',max_length=100)
+    recipient: str = Field(default='',max_length=200)
+    logo_left: str = Field(default='',max_length=500000)
+    logo_right: str = Field(default='',max_length=500000)
+
+class LetterDetails(Strict):
+    number: str = Field(default='',max_length=150)
+    date: str = Field(default='',max_length=10)
+    place: str = Field(default='',max_length=100)
+    recipient: str = Field(default='',max_length=200)
+
+    @field_validator('date')
+    @classmethod
+    def letter_date(cls,value):
+        if value: date.fromisoformat(value)
+        return value
+
+class EvaluationDraftRequest(InferenceConsent):
+    expected_revision: int
+    expected_assessment_id: str | None = None
+
+class EvaluationDraftText(Strict):
+    summary: str = Field(min_length=10,max_length=6000)
+    recommendation: str = Field(min_length=10,max_length=6000)
+    basis: str = Field(min_length=10,max_length=6000)
+    article_ids: list[str] = Field(max_length=8)
+    sources: list[Citation] = Field(min_length=1,max_length=12)
+
 class Evaluation(Strict):
     outcome: Literal['proceed','revise']
     summary: str = Field(min_length=10,max_length=10000)
@@ -99,6 +133,10 @@ class Evaluation(Strict):
     sanction: str = Field(default='',max_length=2000)
     expected_revision: int
     expected_assessment_id: str | None = None
+    article_ids: list[str] = Field(default_factory=list,max_length=12)
+    ai_draft_id: str | None = None
+    human_reviewed: bool = False
+    letter: LetterDetails = Field(default_factory=LetterDetails)
 
     @field_validator('summary','recommendation','basis','sanction')
     @classmethod

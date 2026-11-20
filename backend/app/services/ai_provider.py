@@ -72,8 +72,8 @@ def ensure_ready(config):
     if config.external and not config.api_key.get_secret_value(): raise ValueError('API key OpenRouter belum diisi pada Pengaturan.')
     if config.external and not config.external_authorized: raise ValueError('Persetujuan pengiriman isi BAP ke OpenRouter diperlukan untuk dokumen ini.')
 
-def strict_schema():
-    schema=copy.deepcopy(Extraction.model_json_schema())
+def strict_schema(output_model=Extraction):
+    schema=copy.deepcopy(output_model.model_json_schema())
     def visit(value):
         if isinstance(value,dict):
             value.pop('default',None)
@@ -89,9 +89,9 @@ def strict_schema():
 def http_error(status):
     return {401:'API key OpenRouter tidak valid.',402:'Saldo atau kredit OpenRouter tidak cukup.',403:'OpenRouter menolak akses model atau kebijakan akun.',404:'Model OpenRouter tidak ditemukan.',408:'Provider AI melewati batas waktu.',429:'Batas permintaan API tercapai. Coba kembali nanti.'}.get(status,f'OpenRouter mengembalikan HTTP {status}. Periksa dukungan JSON Schema, model, dan kebijakan routing akun.')
 
-async def infer_openrouter(chunk,system,config):
+async def infer_openrouter(chunk,system,config,output_model=Extraction,schema_name='bap_extraction'):
     ensure_ready(config)
-    payload={'model':config.model,'stream':False,'temperature':0,'max_tokens':EXTRACTION_MAX_TOKENS,'messages':[{'role':'system','content':system},{'role':'user','content':json.dumps(chunk,ensure_ascii=False)}],'response_format':{'type':'json_schema','json_schema':{'name':'bap_extraction','strict':True,'schema':strict_schema()}},'provider':{'require_parameters':True,'data_collection':'deny','zdr':True,'allow_fallbacks':False}}
+    payload={'model':config.model,'stream':False,'temperature':0,'max_tokens':EXTRACTION_MAX_TOKENS,'messages':[{'role':'system','content':system},{'role':'user','content':json.dumps(chunk,ensure_ascii=False)}],'response_format':{'type':'json_schema','json_schema':{'name':schema_name,'strict':True,'schema':strict_schema(output_model)}},'provider':{'require_parameters':True,'data_collection':'deny','zdr':True,'allow_fallbacks':False}}
     # Nemotron Super VL thinks by default. For factual extraction, reserve the
     # existing output budget for the JSON rather than hidden reasoning tokens.
     # Scope this override to the verified model; other models may require thinking.
@@ -114,7 +114,7 @@ async def infer_openrouter(chunk,system,config):
                 raise ValueError(f'Respons AI mencapai batas {EXTRACTION_MAX_TOKENS} token sebelum JSON selesai.{hint} Hasil parsial tidak disimpan. Kurangi panjang BAP per unggahan atau pilih model yang dapat menghasilkan JSON ringkas.')
             if choice.get('finish_reason')!='stop':
                 raise ValueError('Model berhenti tanpa jawaban final yang lengkap. Hasil ekstraksi tidak disimpan. Coba kembali atau periksa kesesuaian model.')
-            return Extraction.model_validate_json(choice['message']['content'])
+            return output_model.model_validate_json(choice['message']['content'])
     except httpx.TimeoutException:
         raise ValueError('API AI melewati batas waktu. Coba kembali nanti.') from None
     except httpx.HTTPError:

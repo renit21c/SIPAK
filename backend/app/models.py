@@ -5,6 +5,11 @@ from .database import Base, now
 
 def uid(): return str(uuid.uuid4())
 
+class ApplicationSetting(Base):
+    __tablename__ = 'application_settings'
+    key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    value: Mapped[dict] = mapped_column(JSON)
+
 class Role(Base):
     __tablename__ = 'roles'
     name: Mapped[str] = mapped_column(String(40), primary_key=True)

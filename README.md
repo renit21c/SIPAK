@@ -2,7 +2,7 @@
 
 Panduan publish: [Railway + PostgreSQL + penyimpanan PDF](docs/DEPLOY_RAILWAY.md). Dockerfile membangun frontend dan backend menjadi satu service.
 
-Sistem Informasi Pengolahan dan Analisis Kasus. React/TypeScript + FastAPI, dengan ekstraksi PDF PyMuPDF, inferensi API OpenRouter atau Ollama lokal, validasi Pydantic, database SQLAlchemy, dan laporan PDF ReportLab. Antarmuka berbahasa Indonesia memakai identitas navy, crimson, dan pink; logo SIPAK dibuat dari simbol dokumen/perisai, tanpa logo institusi resmi.
+Sistem Informasi Pengolahan dan Analisis Kasus. React/TypeScript + FastAPI, dengan ekstraksi PDF PyMuPDF, inferensi API OpenRouter atau Ollama lokal, validasi Pydantic, database SQLAlchemy, dan laporan PDF ReportLab. Antarmuka berbahasa Indonesia memakai identitas navy, crimson, dan pink; logo SIPAK dibuat dari simbol dokumen/perisai, PDF rekomendasi memakai kop dan logo IPDN yang diberikan pengguna.
 
 ## Menjalankan di Windows
 
@@ -35,6 +35,14 @@ PDF tetap disimpan privat di server SIPAK. Teks diekstrak per halaman, dipotong 
 Ollama tetap opsional: pilih Ollama di Pengaturan atau tetapkan `AI_PROVIDER=ollama`, unduh model yang sesuai dengan `ollama pull`, lalu jalankan `ollama serve`. Endpoint lokal tetap dibatasi ke loopback/host Docker `ollama`.
 
 Restart server menandai pekerjaan terputus untuk dicoba ulang. Proses memakai background task lokal, belum durable queue lintas worker; jalankan satu worker. Memakai model cloud tidak otomatis mempublikasikan aplikasi ke internet.
+
+## Draf evaluasi dan kop surat
+
+Setelah fakta BAP diverifikasi, buka Evaluasi dan pilih **Buat draf AI**. AI mengisi ringkasan, rekomendasi dan pertimbangan bersumber, serta menyarankan pasal dari regulasi terverifikasi. Dropdown dapat mencari seluruh pasal dan menampilkan teks aslinya. Kategori/usulan sanksi diisi dari hasil pencocokan lengkap yang terkait pasal pilihan; tanpa kecukupan atau bila hasilnya ambigu, kategori tetap belum ditentukan dan tindak lanjut berupa pendalaman. Komdis dapat mengoreksi semua isian dan wajib mengonfirmasi telaah sebelum menyetujui PDF. Draf tersimpan tidak otomatis menyetujui atau menetapkan keputusan perkara.
+
+Pengaturan **AI & Surat** menyediakan kop IPDN dengan logo dan alamat dari pengguna. Kop dapat dikoreksi, termasuk logo kiri/kanan PNG/JPEG, unit, alamat dan kontak. Detail nomor surat, tanggal, tempat dan tujuan tersedia pada evaluasi. PDF A4 menggunakan tata letak surat instansi, tanpa tanda tangan, dengan lampiran kutipan BAP dan teks pasal terpilih serta watermark SIPAK pada setiap halaman. Snapshot kop dan pasal melekat pada evaluasi yang disetujui, sehingga perubahan pengaturan berikutnya tidak mengubah versi dokumen tersebut.
+
+Endpoint baru: GET/PUT `/api/settings/letterhead`, GET `/api/evaluation/articles`, POST `/api/cases/{id}/evaluation/draft`. Draf memerlukan revisi/penilaian terkini dan persetujuan provider yang sesuai untuk pengiriman cloud. Tidak ada panggilan AI otomatis ketika sekadar membuka halaman. Draf menyaring kandidat maksimal 12 pasal utuh; pilihan manual menampilkan semua pasal terverifikasi. Kutipan draf diperiksa terhadap sumber ekstraksi. Ini memvalidasi sumber, bukan membuktikan kebenaran penalaran model; substansi draf perlu ditelaah Komdis.
 
 ## PostgreSQL
 

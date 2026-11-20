@@ -8,4 +8,5 @@ import './login.css';
 import './komdis.css';
 import './scrollbars.css';
 import './findings.css';
+import './evaluation.css';
 createRoot(document.getElementById('root')!).render(<React.StrictMode><WebIntro><App/></WebIntro></React.StrictMode>);
