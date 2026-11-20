@@ -24,3 +24,7 @@ API key tersimpan pada `.env` backend dan digunakan oleh proses server bersama. 
 ## Antarmuka
 
 Login hanya menampilkan identitas SIPAK, judul Komdis dan form masuk, tanpa ilustrasi justice atau animasi. Tombol mata menampilkan/menyembunyikan password tanpa mengubah nilainya. Menu utama terdiri dari Ringkasan, Unggah BAP, Perkara, Rekomendasi, Arsip BAP, Regulasi dan Pengaturan. Pengelolaan anggota dan audit berada dalam Pengaturan.
+
+## Intro web
+
+Intro terpisah memakai video lokal palu putih flat 2D, tanpa garis dekoratif, dan efek ketukan rendah. Tombol Mulai memutar video dengan suara setelah interaksi pengguna; Lewati langsung membuka web. Audio dapat dibisukan saat video berjalan. Menjelang akhir video, overlay memudar selama 800 ms dan halaman aplikasi muncul. Intro ditandai selesai pada sessionStorage sehingga refresh/navigasi pada tab yang sama tidak mengulanginya. Pengguna dengan preferensi reduced motion langsung masuk ke web. Galat media dan batas waktu pemutaran tidak menahan akses aplikasi. Aset berada di public/intro dan ikut dalam build Vite. Halaman login tetap tanpa scene justice.

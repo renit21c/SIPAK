@@ -1,8 +1,9 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App';
+import {WebIntro} from './WebIntro';
 import './styles.css';
 import './motion.css';
 import './login.css';
 import './komdis.css';
-createRoot(document.getElementById('root')!).render(<React.StrictMode><App/></React.StrictMode>);
+createRoot(document.getElementById('root')!).render(<React.StrictMode><WebIntro><App/></WebIntro></React.StrictMode>);
