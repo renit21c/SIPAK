@@ -9,4 +9,5 @@ import './komdis.css';
 import './scrollbars.css';
 import './findings.css';
 import './evaluation.css';
+import './ui-focus.css';
 createRoot(document.getElementById('root')!).render(<React.StrictMode><WebIntro><App/></WebIntro></React.StrictMode>);
