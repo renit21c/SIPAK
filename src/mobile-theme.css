@@ -1,7 +1,8 @@
 @media(max-width:760px){
  html:has(.app){background:#e9edf7}
  .app.role-komdis,.app.role-komdis .main-shell{background:#e9edf7}
- .role-komdis .topbar{background:linear-gradient(110deg,#25285f,#353b77);border-bottom:1px solid #444c87;color:#e9edff;box-shadow:0 4px 18px #25285f16}
+ .role-komdis .sidebar{border-radius:0 28px 28px 0;box-shadow:8px 0 30px #151a4e26;border-right:1px solid #ffffff12}.role-komdis .sidebar nav a{border-radius:12px}
+ .role-komdis .topbar{margin:10px 10px 0;border-radius:20px;height:64px;padding:0 14px;background:linear-gradient(110deg,#25285f,#353b77);border-bottom:1px solid #444c87;color:#e9edff;box-shadow:0 4px 18px #25285f16}
  .role-komdis .breadcrumb,.role-komdis .breadcrumb strong,.role-komdis .topbar .icon-btn{color:#e9edff}.role-komdis .topbar .icon-btn:hover{background:#ffffff12}.role-komdis .topbar-divider{background:#ffffff25}.role-komdis .topbar .avatar{background:#f7dce5;color:#953449}.role-komdis .topbar .profile>svg{color:#e3e9ff}
  .role-komdis .topbar .popover{background:#fff;color:#344565}.role-komdis .topbar .popover button{color:#53648c}
  .role-komdis .page-heading h1{color:#25285f}.role-komdis .panel{background:#f7f9fe;border-color:#dbe2f0;box-shadow:0 3px 13px #25285f05}.role-komdis .panel-heading{background:#eef1fa;border-bottom:1px solid #e1e6f2;border-radius:9px 9px 0 0}.role-komdis .panel-heading h2{color:#34456c}
