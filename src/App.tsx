@@ -1,7 +1,6 @@
 import {useEffect,useState,useCallback} from 'react';
 import {FolderOpen,Settings as SettingsIcon,Bell,ChevronDown,ChevronRight,Menu,LogOut,ShieldCheck,LockKeyhole,HelpCircle,CalendarDays,PanelLeftClose,CheckCircle2,AlertCircle,Cloud,Eye,EyeOff} from 'lucide-react';
 import {api,post} from './api';
-import {JusticeMotion} from './JusticeMotion';
 import {Logo,Modal,Field,Loading} from './components';
 import type {User,Doc,Case,Settings} from './types';
 import {Dashboard} from './pages/Dashboard';
@@ -43,7 +42,7 @@ export default function App(){
 function Login({onLogin}:{onLogin:(u:User)=>void}){
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[showPassword,setShowPassword]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  return <div className="login">
-  <div className="login-story"><div className="login-brand-row"><Logo/></div><div className="login-narrative"><h1>Ruang kerja<br/><em>Komdis.</em></h1><JusticeMotion/></div></div>
+  <div className="login-story"><div className="login-brand-row"><Logo/></div><div className="login-narrative"><h1>Ruang kerja<br/><em>Komdis.</em></h1></div></div>
   <div className="login-form"><h2>Masuk</h2><form onSubmit={async e=>{e.preventDefault();setBusy(true);setError('');try{onLogin(await post<User>('/auth/login',{email,password}))}catch(e){setError((e as Error).message)}finally{setBusy(false)}}}>
    <Field label="Email"><input autoComplete="username" type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="nama@institusi.ac.id"/></Field>
    <div className="field"><label htmlFor="login-password">Kata sandi</label><div className="password-input"><input id="login-password" autoComplete="current-password" type={showPassword?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Kata sandi"/><button type="button" className="icon-btn" aria-label={showPassword?'Sembunyikan kata sandi':'Lihat kata sandi'} aria-pressed={showPassword} onClick={()=>setShowPassword(!showPassword)}>{showPassword?<EyeOff size={19}/>:<Eye size={19}/>}</button></div></div>
