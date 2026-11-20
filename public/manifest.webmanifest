@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "SIPAK — Komisi Disiplin",
+  "short_name": "SIPAK",
+  "description": "Ruang kerja Komdis untuk BAP, evaluasi, dan rekomendasi.",
+  "lang": "id",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#25285f",
+  "background_color": "#f7f7fa",
+  "icons": [
+    {"src": "/icons/sipak-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/sipak-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/sipak-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

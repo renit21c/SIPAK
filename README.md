@@ -104,4 +104,14 @@ Alur utama bekerja sebagai aplikasi lokal. Yang memerlukan pekerjaan lanjutan se
 
 Filter Ringan/Sedang/Berat berlaku pada tab Pasal dan Pemetaan Sanksi. Tab Pasal menampilkan pasal perilaku dan dasar sanksi yang terkait melalui aturan versi regulasi aktif; teks pasal tetap utuh. Pada pemetaan, kategori dan rincian hanya berasal dari cabang aturan yang cocok dengan filter. Kelompok ketentuan dan pencarian tetap dapat dikombinasikan.
 
-Login desktop memakai kartu dua kolom; login mobile menempatkan logo dan form di tengah dengan palet navy yang sama. Tidak menambahkan pendaftaran atau login sosial dari contoh referensi.
+Login desktop memakai kartu dua kolom; login mobile juga memakai dua kolom dengan panel identitas navy dan form putih, disesuaikan hingga lebar 320 piksel. Tidak menambahkan pendaftaran atau login sosial dari contoh referensi.
+
+## Mobile dan PWA
+
+Tabel menggunakan satu struktur data: desktop berupa tabel, mobile menjadi kartu berlabel per baris. Pencarian, filter, pagination, serta tindakan baca/hapus/pulihkan tetap tersedia tanpa gulir horizontal. Tab navigasi dapat membungkus ke baris berikutnya.
+
+Favicon SVG/ICO dan ikon Apple/PWA memakai mark dokumen-perisai SIPAK. Manifest ada di `public/manifest.webmanifest`, dengan ikon 192/512 dan maskable. Generator ikon: `python scripts/generate_app_icons.py`. Mode produksi mendaftarkan `public/sw.js`; hanya halaman publik `offline.html` yang disimpan pada Cache Storage. API, BAP, lampiran, rekomendasi dan respons login tidak dicache oleh service worker. Aplikasi tetap memerlukan koneksi untuk pekerjaan Komdis. Naikkan versi cache pada sw.js bila fallback offline diperbarui.
+
+Hosting HTTPS atau localhost/127.0.0.1 diperlukan untuk pemasangan PWA; opsi pemasangan mengikuti browser perangkat. Lihat [syarat PWA MDN](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable). Tidak ada prompt pemasangan otomatis di UI.
+
+Verifikasi PWA: `node --test scripts/tests/pwa.test.mjs` memeriksa manifest, ukuran ikon, cache offline, dan pengecualian API/PDF. HTTP pratinjau produksi memeriksa manifest, favicon, seluruh ikon, sw.js dan offline.html beserta MIME type. Pemasangan pada perangkat fisik belum diuji.
