@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.venv/
+.venv-win/
+__pycache__/
+.pytest_cache/
+.env
+.env.*
+!.env.example
+.sipak-config-*.env
+data/
+tmp/
+artifacts/
+*.tsbuildinfo
+*.pyc

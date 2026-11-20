@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.sipak-config-*.env
+.git
+.venv
+.venv-win
+node_modules
+data
+tmp
+.pytest_cache
+**/__pycache__
+artifacts

@@ -1,0 +1,13 @@
+export type Source = { page:number; quote:string };
+export type Item = { sources?:Source[]; [key:string]:unknown };
+export type Extraction = { case_information:Item; involved_persons:Item[]; evidence:Item[]; witnesses:Item[]; chronology:Item[]; relationships:Item[]; legal_provisions_mentioned:Item[]; missing_information:string[] };
+export type Doc = {id:string;name:string;size:number;page_count:number;status:string;stage:number;error:string|null;duration:number|null;created_at:string;case_id?:string;verified?:boolean;uploader?:string};
+export type Match = {rule_id:string;regulation_id:string;regulation_pages?:number[];version:string;article:number;paragraph:string;letter:string;quote:string;category:string|null;sanction:string|null;sanction_basis:string;missing:string[];status:string;sources:Source[]};
+export type RecordItem = {id:string;kind:string;payload:Record<string,unknown>;created_at:string;created_by:string};
+export type Case = {id:string;number:string;status:string;verified:boolean;revision:number;created_at:string;document:Doc;information:Item;persons:Item[];analysis:Match[];extraction?:Extraction;records?:RecordItem[];attachments?:{id:string;name:string}[];decisions?:{id:string;number:string;sanction:string;basis:string;reason:string;official:string;date:string}[]};
+export type User = {id:string;name:string;email:string;role:string;permissions:string[]};
+export type Article = {id:string;number:number;text:string};
+export type Regulation = {id:string;title:string;number:string;version:string;effective_date:string;source_url:string;verified:boolean;articles:Article[];builtin?:boolean;page_count?:number;rule_count?:number;article_pages?:Record<string,number[]>;clause_pages?:Record<string,number[]>;reference_only?:string[]};
+export type Settings = {ai_provider:'openrouter'|'ollama';ai_provider_label:string;ai_external:boolean;ai_endpoint:string;ai_configured:boolean;api_key_configured:boolean;ai_connected:boolean;ollama_url:string;model:string;ollama_connected:boolean;model_available:boolean;available_models:string[];database:string;max_upload_mb:number;workflow:string[]};
+export const text = (v:unknown):string => v === null || v === undefined || v === '' || (Array.isArray(v) && !v.length) ? '—' : Array.isArray(v) ? v.join(', ') : String(v);
+export const date = (v:string) => new Date(v).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
