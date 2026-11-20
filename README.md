@@ -116,7 +116,7 @@ Hosting HTTPS atau localhost/127.0.0.1 diperlukan untuk pemasangan PWA; opsi pem
 
 Verifikasi PWA: `node --test scripts/tests/pwa.test.mjs` memeriksa manifest, ukuran ikon, cache offline, dan pengecualian API/PDF. HTTP pratinjau produksi memeriksa manifest, favicon, seluruh ikon, sw.js dan offline.html beserta MIME type. Pemasangan pada perangkat fisik belum diuji.
 
-Tema mobile menggunakan latar biru lembut, topbar navy, kartu angka navy/biru/pink, dan panel identitas perkara navy. Sorotan rekomendasi menggunakan pink lembut/crimson; warna status tetap semantik. Tema ini hanya berlaku sampai 760 px. Desktop tetap mengikuti tampilan sebelumnya.
+Desktop dan mobile memakai tema bersama: latar biru lembut, topbar navy membulat, kartu angka navy/biru/pink, dan panel identitas perkara navy. Sorotan rekomendasi menggunakan pink lembut/crimson; warna status tetap semantik. Desktop memakai sidebar navy dengan menu aktif terang dan panel membulat, sementara mobile tetap memakai navigasi bawah serta kartu tabel vertikal.
 
 Login tidak memakai bingkai atau margin luar pada desktop/mobile. Navbar mobile mengambang dengan radius 20 px. Form tetap dapat digulir vertikal pada viewport pendek, tanpa memotong kontrol.
 
