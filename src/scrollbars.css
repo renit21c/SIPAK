@@ -1,0 +1,9 @@
+:root{--scroll-track:#f7f7fa;--scroll-thumb:#a4aac6;--scroll-hover:#717a9f}
+*{scrollbar-width:thin;scrollbar-color:var(--scroll-thumb) var(--scroll-track)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--scroll-track)}
+::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border:2px solid var(--scroll-track);border-radius:999px;min-height:36px}
+::-webkit-scrollbar-thumb:hover{background:var(--scroll-hover)}
+::-webkit-scrollbar-corner{background:var(--scroll-track)}
+.sidebar,.web-intro{--scroll-track:#25285f;--scroll-thumb:#555e8d;--scroll-hover:#818bb6}
+@media(forced-colors:active){*{scrollbar-color:auto}}

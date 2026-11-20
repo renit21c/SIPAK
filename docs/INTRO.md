@@ -4,9 +4,9 @@ Intro menggunakan aset lokal `public/intro/sipak-intro.mp4` (720p, H.264/AAC, 5,
 
 Palu dan alas dibuat sebagai bentuk putih flat 2D di atas warna navy SIPAK. Tidak ada garis dekoratif di bawah judul. Dua ketukan memakai suara sintetis dengan resonansi rendah dan gema pendek, dengan puncak audio di bawah clipping. Akhir video memudar ke navy; overlay web memudar selama 800 ms sambil halaman aplikasi muncul.
 
-Pengguna memilih Mulai untuk pemutaran bersuara, atau Lewati untuk langsung membuka aplikasi. Saat diputar, suara dapat dibisukan. Browser membatasi autoplay bersuara; playback dipanggil langsung dari klik pengguna sesuai [kebijakan Chrome](https://developer.chrome.com/blog/autoplay/).
+Video otomatis diputar saat halaman dimuat, tanpa tombol Mulai. Aplikasi mencoba autoplay bersuara; bila ditolak browser, video langsung dilanjutkan tanpa suara. Ikon speaker mengaktifkan atau membisukan suara lewat interaksi pengguna. Lewati membuka aplikasi. Perilaku fallback mengikuti [kebijakan Chrome](https://developer.chrome.com/blog/autoplay/).
 
-Intro berjalan sekali per sesi tab melalui sessionStorage. Navigasi internal dan refresh tidak mengulanginya. Tab baru dapat menampilkan intro lagi. Preferensi reduced motion melewati intro. Kegagalan media dan timeout pemutaran membuka aplikasi; konten aplikasi tidak dapat difokuskan selama intro aktif. Escape melewati intro. Setelah transisi, fokus berpindah ke kontrol awal halaman.
+Intro berjalan pada setiap pemuatan halaman atau refresh. Navigasi internal aplikasi tidak mengulanginya. Preferensi reduced motion melewati intro. Kegagalan media dan timeout pemutaran membuka aplikasi; konten aplikasi tidak dapat difokuskan selama intro aktif. Escape melewati intro. Setelah transisi, fokus berpindah ke kontrol awal halaman.
 
 ## Membuat ulang video
 

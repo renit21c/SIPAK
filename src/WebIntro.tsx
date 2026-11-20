@@ -1,13 +1,11 @@
 import {useCallback,useEffect,useRef,useState,type ReactNode} from 'react';
-import {Play,Volume2,VolumeX} from 'lucide-react';
+import {Volume2,VolumeX} from 'lucide-react';
 import './web-intro.css';
 
-const SESSION_KEY='sipak-intro-white-v1';
-type Phase='ready'|'playing'|'leaving'|'done';
+type Phase='playing'|'leaving'|'done';
 function initialPhase():Phase{
  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return 'done';
- try{if(sessionStorage.getItem(SESSION_KEY)==='seen')return 'done'}catch{}
- return 'ready';
+ return 'playing';
 }
 
 export function WebIntro({children}:{children:ReactNode}){
@@ -21,9 +19,20 @@ export function WebIntro({children}:{children:ReactNode}){
   return()=>{document.body.style.overflow=previous};
  },[visible]);
  const finish=useCallback(()=>{
-  try{sessionStorage.setItem(SESSION_KEY,'seen')}catch{}
   setPhase(current=>current==='done'||current==='leaving'?current:'leaving');
  },[]);
+ useEffect(()=>{
+  if(phase!=='playing'||!video.current)return;
+  const player=video.current;let cancelled=false;
+  player.volume=.7;player.muted=false;
+  player.play().catch(async()=>{
+   if(cancelled)return;
+   // Keep the intro automatic when browser policy rejects audible autoplay.
+   player.muted=true;setMuted(true);
+   try{await player.play()}catch{if(!cancelled)finish()}
+  });
+  return()=>{cancelled=true};
+ },[phase,finish]);
  useEffect(()=>{
   if(phase==='playing'){const timer=setTimeout(finish,15000);return()=>clearTimeout(timer)}
   if(phase==='leaving'){const timer=setTimeout(()=>setPhase('done'),850);return()=>clearTimeout(timer)}
@@ -34,11 +43,6 @@ export function WebIntro({children}:{children:ReactNode}){
   const change=()=>{if(preference.matches){video.current?.pause();finish();setPhase('done')}};
   preference.addEventListener('change',change);return()=>preference.removeEventListener('change',change);
  },[finish]);
- const start=()=>{
-  if(!video.current)return;
-  video.current.volume=.7;video.current.muted=false;setMuted(false);
-  setPhase('playing');video.current.play().catch(()=>setPhase(current=>current==='playing'?'ready':current));
- };
  const skip=()=>{video.current?.pause();finish()};
  const active=phase!=='done'&&phase!=='leaving';
  return <>
@@ -52,9 +56,8 @@ export function WebIntro({children}:{children:ReactNode}){
     else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
    }
   }}>
-   <video ref={video} src="/intro/sipak-intro.mp4" poster="/intro/poster.jpg" playsInline preload="auto" disablePictureInPicture aria-hidden="true" onEnded={finish} onError={finish} onTimeUpdate={()=>{if(video.current&&video.current.currentTime>=4.42)finish()}}/>
-   {phase==='ready'&&<button className="intro-play" autoFocus onClick={start} aria-label="Putar intro dengan suara"><Play size={18} fill="currentColor"/>Mulai</button>}
-   {phase!=='leaving'&&<div className="intro-controls">{phase==='playing'&&<button className="intro-sound" aria-label={muted?'Aktifkan suara':'Bisukan suara'} onClick={()=>{if(video.current){video.current.muted=!muted;setMuted(!muted)}}}>{muted?<VolumeX size={20}/>:<Volume2 size={20}/>}</button>}<button className="intro-skip" onClick={skip}>Lewati</button></div>}
+   <video ref={video} src="/intro/sipak-intro.mp4" poster="/intro/poster.jpg" autoPlay muted={muted} playsInline preload="auto" disablePictureInPicture aria-hidden="true" onEnded={finish} onError={finish} onTimeUpdate={()=>{if(video.current&&video.current.currentTime>=4.42)finish()}}/>
+   {phase!=='leaving'&&<div className="intro-controls"><button className="intro-sound" aria-label={muted?'Aktifkan suara':'Bisukan suara'} onClick={()=>{const player=video.current;if(player){player.muted=!muted;setMuted(!muted);player.play().catch(finish)}}}>{muted?<VolumeX size={20}/>:<Volume2 size={20}/>}</button><button className="intro-skip" autoFocus onClick={skip}>Lewati</button></div>}
   </div>}
  </>;
 }
