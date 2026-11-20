@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Literal
-from pydantic import SecretStr
+from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -19,5 +19,16 @@ class Settings(BaseSettings):
     bootstrap_email: str = ''
     bootstrap_password: str = ''
     bootstrap_name: str = 'Administrator'
+
+    @field_validator('database_url',mode='before')
+    @classmethod
+    def postgres_driver(cls,value):
+        # Hosting platforms usually supply a plain PostgreSQL URL. Use the
+        # psycopg 3 driver already installed by SIPAK without rewriting credentials.
+        if isinstance(value,str):
+            for prefix in ('postgres://','postgresql://'):
+                if value.startswith(prefix):
+                    return 'postgresql+psycopg://'+value[len(prefix):]
+        return value
 
 settings = Settings()

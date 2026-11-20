@@ -11,3 +11,4 @@ tmp
 .pytest_cache
 **/__pycache__
 artifacts
+output

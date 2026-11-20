@@ -1,5 +1,7 @@
 # SIPAK
 
+Panduan publish: [Railway + PostgreSQL + penyimpanan PDF](docs/DEPLOY_RAILWAY.md). Dockerfile membangun frontend dan backend menjadi satu service.
+
 Sistem Informasi Pengolahan dan Analisis Kasus. React/TypeScript + FastAPI, dengan ekstraksi PDF PyMuPDF, inferensi API OpenRouter atau Ollama lokal, validasi Pydantic, database SQLAlchemy, dan laporan PDF ReportLab. Antarmuka berbahasa Indonesia memakai identitas navy, crimson, dan pink; logo SIPAK dibuat dari simbol dokumen/perisai, tanpa logo institusi resmi.
 
 ## Menjalankan di Windows
