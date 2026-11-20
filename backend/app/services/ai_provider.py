@@ -13,6 +13,7 @@ from ..config import settings
 from ..schemas import Extraction
 
 OPENROUTER_URL='https://openrouter.ai/api/v1'
+EXTRACTION_MAX_TOKENS=6000
 CONFIG_ENV_PATH=Path('.env')
 CONFIG_LOCK=threading.RLock()
 
@@ -90,20 +91,35 @@ def http_error(status):
 
 async def infer_openrouter(chunk,system,config):
     ensure_ready(config)
+    payload={'model':config.model,'stream':False,'temperature':0,'max_tokens':EXTRACTION_MAX_TOKENS,'messages':[{'role':'system','content':system},{'role':'user','content':json.dumps(chunk,ensure_ascii=False)}],'response_format':{'type':'json_schema','json_schema':{'name':'bap_extraction','strict':True,'schema':strict_schema()}},'provider':{'require_parameters':True,'data_collection':'deny','zdr':True,'allow_fallbacks':False}}
+    # Nemotron Super VL thinks by default. For factual extraction, reserve the
+    # existing output budget for the JSON rather than hidden reasoning tokens.
+    # Scope this override to the verified model; other models may require thinking.
+    if config.model.removesuffix(':free')=='nvidia/nemotron-3.5-super-vl':
+        payload['reasoning']={'enabled':False}
     try:
         async with httpx.AsyncClient(timeout=config.timeout,trust_env=False,follow_redirects=False) as client:
-            response=await client.post(OPENROUTER_URL+'/chat/completions',headers={'Authorization':'Bearer '+config.api_key.get_secret_value(),'X-OpenRouter-Title':'SIPAK'},json={'model':config.model,'stream':False,'temperature':0,'max_tokens':6000,'messages':[{'role':'system','content':system},{'role':'user','content':json.dumps(chunk,ensure_ascii=False)}],'response_format':{'type':'json_schema','json_schema':{'name':'bap_extraction','strict':True,'schema':strict_schema()}},'provider':{'require_parameters':True,'data_collection':'deny','zdr':True,'allow_fallbacks':False}})
+            response=await client.post(OPENROUTER_URL+'/chat/completions',headers={'Authorization':'Bearer '+config.api_key.get_secret_value(),'X-OpenRouter-Title':'SIPAK'},json=payload)
             if response.status_code!=200: raise ValueError(http_error(response.status_code))
             data=response.json()
             if data.get('error'): raise ValueError('OpenRouter gagal menghasilkan respons. Periksa status model dan kredit akun.')
             choice=data['choices'][0]
-            if choice.get('finish_reason')!='stop': raise ValueError('Respons AI terpotong atau ditolak. Gunakan model dengan kapasitas keluaran yang sesuai.')
+            if choice.get('finish_reason')=='content_filter' or choice.get('message',{}).get('refusal'):
+                raise ValueError('Model menolak pemrosesan dokumen. Hasil ekstraksi tidak disimpan. Periksa kebijakan model atau pilih model lain yang sesuai.')
+            if choice.get('finish_reason')=='length':
+                usage=data.get('usage') or {}
+                details=usage.get('completion_tokens_details') or {}
+                reasoning=details.get('reasoning_tokens')
+                hint=f' Sebanyak {reasoning} token digunakan untuk thinking.' if type(reasoning) is int and 0<reasoning<=10000000 else ''
+                raise ValueError(f'Respons AI mencapai batas {EXTRACTION_MAX_TOKENS} token sebelum JSON selesai.{hint} Hasil parsial tidak disimpan. Kurangi panjang BAP per unggahan atau pilih model yang dapat menghasilkan JSON ringkas.')
+            if choice.get('finish_reason')!='stop':
+                raise ValueError('Model berhenti tanpa jawaban final yang lengkap. Hasil ekstraksi tidak disimpan. Coba kembali atau periksa kesesuaian model.')
             return Extraction.model_validate_json(choice['message']['content'])
     except httpx.TimeoutException:
         raise ValueError('API AI melewati batas waktu. Coba kembali nanti.') from None
     except httpx.HTTPError:
         raise ValueError('Koneksi ke OpenRouter gagal. Periksa jaringan server.') from None
-    except (ValidationError,KeyError,IndexError,TypeError,json.JSONDecodeError):
+    except (ValidationError,KeyError,IndexError,TypeError,AttributeError,json.JSONDecodeError):
         raise ValueError('Respons OpenRouter tidak sesuai skema ekstraksi. Pilih model yang mendukung structured outputs.') from None
 
 async def check_openrouter():

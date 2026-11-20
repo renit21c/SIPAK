@@ -45,3 +45,13 @@ Pilih Ollama pada Pengaturan, isi model yang telah diunduh lalu simpan. Atau tet
 - [Provider routing dan kebijakan data](https://openrouter.ai/docs/guides/routing/provider-selection)
 - [Kebijakan ZDR](https://openrouter.ai/docs/guides/features/zdr)
 - [Pemeriksaan metadata API key](https://openrouter.ai/docs/api/api-reference/api-keys/get-current-key)
+
+## Nemotron dan respons terpotong
+
+Untuk `nvidia/nemotron-3.5-super-vl` (termasuk varian `:free` bila tersedia), SIPAK mengirim `reasoning: {enabled: false}` pada ekstraksi BAP agar keluaran JSON tidak berbagi jatah dengan thinking yang aktif secara default. Batas keluaran tetap 6.000 token per request; provider, model, persetujuan, strict schema, ZDR dan kebijakan tanpa fallback tetap berlaku. Model lain tidak menerima override ini karena sebagian model mewajibkan reasoning.
+
+Prompt meminta JSON ringkas dan kutipan verbatim seperlunya. `finish_reason: length` tetap gagal meskipun sebagian JSON bisa diparse; aplikasi tidak memakai reasoning sebagai data, memperbaiki JSON terpotong, atau menyimpan perkara dari hasil parsial. Pesan error memisahkan kehabisan token dari penolakan model. Bila disediakan, hanya jumlah token thinking berbentuk bilangan bulat yang ditampilkan; isi reasoning, refusal, respons mentah dan API key tidak dicatat.
+
+Referensi: [NVIDIA Super VL](https://docs.nvidia.com/nim/large-language-models/2.1.6/get-started/advanced/get-started-nemotron-3.5-super-vl.html), [OpenRouter reasoning](https://github.com/OpenRouterTeam/docs/blob/main/guides/best-practices/reasoning-tokens.mdx).
+
+Setelah memperbarui backend, restart server dan gunakan Coba kembali pada BAP gagal. Pengujian transport memakai API tiruan; keberhasilan ekstraksi pada provider asli tetap perlu diperiksa pengguna. Tidak ada inferensi berbayar atau pengiriman ulang BAP saat menjalankan pengujian.

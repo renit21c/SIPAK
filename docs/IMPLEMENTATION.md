@@ -30,7 +30,7 @@ Implementasi awal ini dimulai dari direktori kosong. Tidak ada gambar referensi 
 ## Pemeriksaan yang dijalankan
 
 - `npm.cmd run build`: pemeriksaan TypeScript dan build Vite.
-- `python -m pytest backend/tests -q`: 42 pengujian integrasi/unit meliputi keamanan sesi/peran, PDF, sumber, chunking, kegagalan model, verifikasi/revisi, versi regulasi, matching berbasis kondisi, migrasi akun, arsip keputusan, evaluasi/revisi, dan watermark PDF rekomendasi.
+- `python -m pytest backend/tests -q`: 48 pengujian integrasi/unit meliputi keamanan sesi/peran, PDF, sumber, chunking, kegagalan model, verifikasi/revisi, versi regulasi, matching berbasis kondisi, migrasi akun, arsip keputusan, evaluasi/revisi, dan watermark PDF rekomendasi.
 - Browser lokal: login, delapan menu utama, status kosong dan konfigurasi belum terhubung; tata letak desktop 1440 px dan mobile 390 px serta interaksi menu mobile.
 
 Lihat README untuk penyiapan akun, konfigurasi, perintah pengujian dan batas penerapan.

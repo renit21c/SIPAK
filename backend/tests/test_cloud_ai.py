@@ -70,6 +70,57 @@ def test_invalid_or_truncated_output_fails(monkeypatch,content,finish):
     mock_http(monkeypatch,lambda req:httpx.Response(200,json={'choices':[{'finish_reason':finish,'message':{'content':content}}]}))
     with pytest.raises(ValueError): asyncio.run(infer([{'page':1,'text':'test'}],config=config()))
 
+@pytest.mark.parametrize('model,disabled',[
+    ('nvidia/nemotron-3.5-super-vl',True),
+    ('nvidia/nemotron-3.5-super-vl:free',True),
+    ('test/mandatory-thinking-model',False),
+])
+def test_nemotron_extraction_reserves_existing_budget_for_json(monkeypatch,extracted,model,disabled):
+    bodies=[]
+    def handler(request):
+        bodies.append(json.loads(request.content))
+        return httpx.Response(200,json={'choices':[{'finish_reason':'stop','message':{'content':extracted.model_dump_json()}}]})
+    mock_http(monkeypatch,handler)
+    selected=InferenceConfig('openrouter',model,SecretStr(FAKE_KEY),180,True)
+    assert asyncio.run(infer([{'page':1,'text':'Synthetic BAP'}],config=selected))==extracted
+    body=bodies[0]
+    assert body['model']==model and body['max_tokens']==6000
+    assert (body.get('reasoning')=={'enabled':False}) if disabled else 'reasoning' not in body
+    assert body['response_format']['json_schema']['strict'] is True
+    assert body['provider']=={'require_parameters':True,'data_collection':'deny','zdr':True,'allow_fallbacks':False}
+
+
+def test_length_error_reports_safe_counts_not_reasoning_or_partial_content(monkeypatch,extracted):
+    secret='Synthetic confidential source '+FAKE_KEY
+    mock_http(monkeypatch,lambda req:httpx.Response(200,json={
+        'choices':[{'finish_reason':'length','message':{'content':extracted.model_dump_json(),'reasoning':secret}}],
+        'usage':{'completion_tokens':6000,'completion_tokens_details':{'reasoning_tokens':5900}},
+    }))
+    # Even parseable content is not accepted when the provider says it is incomplete.
+    with pytest.raises(ValueError,match='5900 token digunakan untuk thinking') as error:
+        asyncio.run(infer([{'page':1,'text':secret}],config=config()))
+    assert '6000' in str(error.value) and secret not in str(error.value)
+    assert FAKE_KEY not in str(error.value)
+
+
+def test_refusal_is_distinct_and_redacted(monkeypatch):
+    secret='Synthetic confidential refusal '+FAKE_KEY
+    mock_http(monkeypatch,lambda req:httpx.Response(200,json={'choices':[{'finish_reason':'stop','message':{'content':None,'refusal':secret}}]}))
+    with pytest.raises(ValueError,match='Model menolak') as error:
+        asyncio.run(infer([{'page':1,'text':secret}],config=config()))
+    assert secret not in str(error.value) and FAKE_KEY not in str(error.value)
+
+
+def test_truncated_cloud_upload_does_not_create_case(client,pdf_bytes,monkeypatch):
+    cloud(monkeypatch)
+    mock_http(monkeypatch,lambda req:httpx.Response(200,json={'choices':[{'finish_reason':'length','message':{'content':'{"case_information":','reasoning':FAKE_KEY}}]}))
+    r=client.post('/api/documents',files={'file':('synthetic-truncated.pdf',pdf_bytes,'application/pdf')},data={'cloud_consent':'true','expected_provider':'openrouter','expected_model':'test/model'})
+    assert r.status_code==201
+    doc=client.get('/api/documents').json()[0]
+    assert doc['status']=='Gagal' and 'batas 6000 token' in doc['error']
+    assert FAKE_KEY not in doc['error']
+    assert client.get('/api/cases').json()==[]
+
 def test_save_redacts_key_and_preserves_it(client):
     from backend.app.services.ai_provider import CONFIG_ENV_PATH
     from dotenv import dotenv_values
