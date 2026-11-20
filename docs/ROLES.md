@@ -23,4 +23,4 @@ API key tersimpan pada `.env` backend dan digunakan oleh proses server bersama. 
 
 ## Antarmuka
 
-Login hanya menampilkan identitas SIPAK, judul Komdis, satu animasi palu dan form masuk. Tombol mata menampilkan/menyembunyikan password tanpa mengubah nilainya. Tombol jeda animasi dihapus. Preferensi sistem reduced motion tetap dihormati. Menu utama terdiri dari Ringkasan, Unggah BAP, Perkara, Rekomendasi, Arsip BAP, Regulasi dan Pengaturan. Pengelolaan anggota dan audit berada dalam Pengaturan.
+Login hanya menampilkan identitas SIPAK, judul Komdis, ilustrasi statis dan form masuk, tanpa animasi. Tombol mata menampilkan/menyembunyikan password tanpa mengubah nilainya. Menu utama terdiri dari Ringkasan, Unggah BAP, Perkara, Rekomendasi, Arsip BAP, Regulasi dan Pengaturan. Pengelolaan anggota dan audit berada dalam Pengaturan.

@@ -1,4 +1,4 @@
-/* Only the login gavel moves continuously. Other illustrations stay still. */
+/* The login illustration is static. */
 .login-story{background:radial-gradient(ellipse at 8% 15%,#3f417c 0,transparent 55%),linear-gradient(145deg,#292c63,#1c204d);padding:48px 9%;isolation:isolate;animation:none}
 .login-brand-row{position:relative;z-index:2}.login-narrative{position:relative;z-index:1;width:100%;margin:auto 0}
 .login-story h1{font-size:clamp(36px,4.7vw,66px);line-height:1.15;letter-spacing:-2px;margin:30px 0 0}
@@ -6,15 +6,14 @@
 .justice-art{position:relative;display:block;width:100%;height:auto;overflow:visible;filter:drop-shadow(0 16px 28px #10133430)}
 .justice-halo{position:absolute;inset:8% 15%;border-radius:50%;background:radial-gradient(ellipse,#8886bb26,transparent 70%)}
 .justice-orbit{position:absolute;inset:6% 20% 4%;border:1px solid #c6c9ea15;border-radius:50%;transform:rotate(-20deg)}
-.justice-gavel{transform-box:view-box;transform-origin:333px 198px;animation:justice-strike 6s cubic-bezier(.45,0,.3,1) infinite}
 .justice-impact{display:none}
-@keyframes justice-strike{0%,12%,68%,100%{transform:rotate(0)}30%,39%{transform:rotate(16deg)}47%{transform:rotate(-20deg)}53%{transform:rotate(-15deg)}60%{transform:rotate(-20deg)}}
+.login *,.login *:before,.login *:after{animation:none!important;transition:none!important}
+.login .btn:hover,.login .btn:active{transform:none!important}
 .login-form{animation:none}.login-form h2{margin-bottom:32px;font-size:30px}
 .password-input{position:relative;width:100%}.password-input input{width:100%;padding-right:48px}.password-input button{position:absolute;right:6px;top:50%;transform:translateY(-50%);color:#737b9a}
 .password-input button:active{transform:translateY(-50%)!important}.login-form .field>label{font-size:14px;color:#60677e;margin-bottom:9px}
 @media(max-width:1000px){.login-story{padding:40px 8%}.login-story h1{font-size:48px}}
 @media(max-width:760px){.login-story{padding:25px 28px 12px}.login-brand-row .brand{margin-bottom:0}.login-narrative{margin:25px 0 0;min-height:135px}.login-story h1{font-size:36px;letter-spacing:-1px;margin:0;padding-top:10px}.justice-scene{position:absolute;right:-20px;bottom:-8px;width:220px;z-index:-1}.login-form{margin:14px auto 28px;padding:24px}.login-form h2{font-size:26px;margin-bottom:26px}}
 @media(max-width:380px){.justice-scene{right:-35px;width:200px}.login-story h1{font-size:32px}}
-@media(prefers-reduced-motion:reduce){.justice-gavel{animation:none}}
 
 .password-input .icon-btn:hover,.password-input .icon-btn:focus-visible,.password-input .icon-btn:active{transform:translateY(-50%)!important}
