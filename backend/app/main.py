@@ -212,8 +212,28 @@ def delete_document(document_id:str,user:User=Depends(require('delete')),db:DBSe
     return {'ok':True}
 
 @app.get('/api/cases')
-def cases(user:User=Depends(require('read')),db:DBSession=Depends(get_db)):
-    return [case_dict(db,c) for c in db.scalars(select(Case).order_by(Case.created_at.desc())) if not db.get(Document,c.document_id).deleted]
+def cases(deleted:bool=False,user:User=Depends(require('read')),db:DBSession=Depends(get_db)):
+    return [case_dict(db,c) for c in db.scalars(select(Case).order_by(Case.created_at.desc())) if db.get(Document,c.document_id).deleted==deleted]
+
+@app.delete('/api/cases/{case_id}')
+def delete_case(case_id:str,expected_revision:int,user:User=Depends(require('delete')),db:DBSession=Depends(get_db)):
+    case=get_case(db,case_id)
+    if case.revision!=expected_revision: raise HTTPException(409,'Perkara berubah. Muat ulang sebelum menghapus.')
+    doc=db.get(Document,case.document_id)
+    if doc.status in ('Menunggu','Sedang Diproses'): raise HTTPException(409,'BAP masih diproses.')
+    doc.deleted=True
+    audit(db,user,'case_deleted',case.id,{'revision':case.revision,'recoverable':True});db.commit()
+    return {'ok':True}
+
+@app.post('/api/cases/{case_id}/restore')
+def restore_case(case_id:str,user:User=Depends(require('delete')),db:DBSession=Depends(get_db)):
+    case=db.get(Case,case_id)
+    if not case: raise HTTPException(404,'Perkara tidak ditemukan.')
+    doc=db.get(Document,case.document_id)
+    if not doc.deleted: raise HTTPException(409,'Perkara masih aktif.')
+    doc.deleted=False
+    audit(db,user,'case_restored',case.id);db.commit()
+    return case_dict(db,case)
 
 @app.get('/api/cases/{case_id}')
 def detail(case_id:str,user:User=Depends(require('read')),db:DBSession=Depends(get_db)):

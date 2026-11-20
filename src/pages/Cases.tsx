@@ -1,5 +1,6 @@
 import {useEffect,useState} from 'react';
 import {FileText,FolderOpen,Download,ClipboardCheck,Plus,ExternalLink,Scale,FileDown,History,Paperclip,Save,Check,AlertCircle} from 'lucide-react';
+import {CaseDeleteButton,DeletedCases} from '../CaseDeletion';
 import {RecommendationResult} from '../RecommendationResult';
 import {EvaluationForm} from '../EvaluationForm';
 import {FindingsOverview} from '../FindingsOverview';
@@ -8,14 +9,16 @@ import {Badge,Empty,Field,Loading,Modal,Table} from '../components';
 import {ReviewEditor,AnalysisEditor} from '../CaseEditors';
 import {text,date,type Case,type User,type Settings,type Source,type Extraction} from '../types';
 
-export function CasesPage({cases,go,user}:{cases:Case[];go:(v:string)=>void;mode:string;user:User}){
- return <section className="panel"><header className="panel-heading"><h2>Daftar Perkara</h2>{user.permissions.includes('upload')&&<button className="btn primary" onClick={()=>go('extraction')}><Plus size={17}/>Unggah BAP</button>}</header><Table items={cases} status={c=>c.recommendation_ready?'Rekomendasi Siap':c.status} initialSize={10} searchText={c=>[c.number,c.document.name,c.information.bap_number,...c.persons.map(p=>p.name)].join(' ')} columns={[
+export function CasesPage({cases,go,user,refresh,notify}:{cases:Case[];go:(v:string)=>void;mode:string;user:User;refresh:()=>Promise<void>;notify:(message:string)=>void}){
+ const [trash,setTrash]=useState(false);
+ if(trash)return <><div className="tabs case-list-tabs"><button onClick={()=>setTrash(false)}>Aktif</button><button className="active">Terhapus</button></div><DeletedCases onRestored={async()=>{await refresh();notify('Perkara dipulihkan.')}}/></>;
+ return <><div className="tabs case-list-tabs"><button className="active">Aktif</button>{user.permissions.includes('delete')&&<button onClick={()=>setTrash(true)}>Terhapus</button>}</div><section className="panel"><header className="panel-heading"><h2>Daftar Perkara</h2>{user.permissions.includes('upload')&&<button className="btn primary" onClick={()=>go('extraction')}><Plus size={17}/>Unggah BAP</button>}</header><Table items={cases} status={c=>c.recommendation_ready?'Rekomendasi Siap':c.status} initialSize={10} searchText={c=>[c.number,c.document.name,c.information.bap_number,...c.persons.map(p=>p.name)].join(' ')} columns={[
   {title:'Perkara / BAP',render:c=><div className="stacked"><strong>{c.number}</strong><small>{text(c.information.bap_number)} · {c.document.name}</small></div>},
   {title:'Pihak terkait',render:c=>c.persons.slice(0,2).map(p=>text(p.name)).join(', ')||'—'},
   {title:'Jenis perkara',render:c=>text(c.information.case_type)},
   {title:'Status',render:c=><Badge>{c.recommendation_ready?'Rekomendasi Siap':c.status}</Badge>},
-  {title:'Tindakan',render:c=><button className="btn secondary" onClick={()=>go('case/'+c.id)}><FolderOpen size={16}/>Buka</button>},
- ]} emptyTitle="Belum ada perkara"/></section>;
+  {title:'Tindakan',render:c=><div className="row-actions"><button className="btn secondary" onClick={()=>go('case/'+c.id)}><FolderOpen size={16}/>Buka</button>{user.permissions.includes('delete')&&<CaseDeleteButton caseData={c} onDeleted={async()=>{await refresh();notify('Perkara dihapus.')}}/>}</div>},
+  ]} emptyTitle="Belum ada perkara"/></section></>;
 }
 
 const tabs=[{key:'overview',label:'Fakta BAP',icon:FolderOpen},{key:'analysis',label:'Ketentuan',icon:Scale},{key:'evaluation',label:'Evaluasi',icon:ClipboardCheck},{key:'recommendation',label:'Rekomendasi',icon:FileDown},{key:'history',label:'Riwayat',icon:History}];
@@ -31,7 +34,7 @@ export function CaseDetail({id,user,notify,refresh}:{id:string;user:User;setting
  const c=caseData,ex=c.extraction!,locked=!!c.decisions?.length,canReview=user.permissions.includes('review')&&!locked;
  const stage=c.recommendation_ready?3:c.verified?2:1;
  return <>
-  <section className="case-banner"><div><span className="section-kicker">REVISI {c.revision}</span><h2>{c.number}</h2><p><FileText size={15}/>{c.document.name} · {c.document.page_count} halaman</p></div><div className="case-banner-actions"><Badge>{c.recommendation_ready?'Rekomendasi Siap':c.verified?'Terverifikasi':'Perlu Verifikasi'}</Badge><a className="btn secondary" href={'/api/documents/'+c.document.id+'/pdf'} target="_blank" rel="noreferrer"><ExternalLink size={16}/>BAP</a>{canReview&&!c.verified&&<button className="btn primary" onClick={()=>setEditing(true)}><ClipboardCheck size={17}/>Periksa & Verifikasi</button>}{c.verified&&!c.recommendation_ready&&<button className="btn primary" onClick={()=>setTab('evaluation')}><ClipboardCheck size={17}/>Evaluasi</button>}{c.recommendation_ready&&<a className="btn primary" href={'/api/cases/'+caseId+'/recommendation'} target="_blank" rel="noreferrer"><Download size={17}/>Rekomendasi PDF</a>}</div></section>
+  <section className="case-banner"><div><span className="section-kicker">REVISI {c.revision}</span><h2>{c.number}</h2><p><FileText size={15}/>{c.document.name} · {c.document.page_count} halaman</p></div><div className="case-banner-actions">{user.permissions.includes('delete')&&<CaseDeleteButton caseData={c} onDeleted={async()=>{await refresh();notify('Perkara dihapus.');location.hash='cases'}}/>}<Badge>{c.recommendation_ready?'Rekomendasi Siap':c.verified?'Terverifikasi':'Perlu Verifikasi'}</Badge><a className="btn secondary" href={'/api/documents/'+c.document.id+'/pdf'} target="_blank" rel="noreferrer"><ExternalLink size={16}/>BAP</a>{canReview&&!c.verified&&<button className="btn primary" onClick={()=>setEditing(true)}><ClipboardCheck size={17}/>Periksa & Verifikasi</button>}{c.verified&&!c.recommendation_ready&&<button className="btn primary" onClick={()=>setTab('evaluation')}><ClipboardCheck size={17}/>Evaluasi</button>}{c.recommendation_ready&&<a className="btn primary" href={'/api/cases/'+caseId+'/recommendation'} target="_blank" rel="noreferrer"><Download size={17}/>Rekomendasi PDF</a>}</div></section>
   <div className="case-steps">{['Proses BAP','Verifikasi','Evaluasi','PDF'].map((label,i)=><span key={label} className={i<stage?'done':i===stage?'current':''}>{i<stage?<Check size={17}/>:i===3?<FileDown size={17}/>:<ClipboardCheck size={17}/>} {label}</span>)}</div>
   <div className="tabs" role="navigation" aria-label="Bagian perkara">{tabs.map(({key,label,icon:Icon})=><button key={key} className={tab===key?'active':''} onClick={()=>setTab(key)}><Icon size={17}/>{label}</button>)}</div>
   {actionError&&<div role="alert" className="alert error"><AlertCircle size={18}/>{actionError}</div>}

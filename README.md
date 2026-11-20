@@ -85,7 +85,7 @@ Akun baru hanya memiliki peran `komdis`: baca, unggah, koreksi/verifikasi, anali
 
 Reset kata sandi lokal tersedia melalui `python -m backend.manage reset-password --email ...`; seluruh sesi pengguna tersebut dicabut.
 
-Cookie sesi HttpOnly/SameSite Strict, hashing kata sandi scrypt dengan salt, pemeriksaan origin pada mutasi browser, rate limiting login, UUID untuk file, validasi masukan, dan audit aktivitas diterapkan. File tidak berada di direktori publik. Dokumen terkait perkara tidak dapat dihapus melalui UI; dokumen gagal tanpa perkara dapat dihapus Komdis setelah konfirmasi. Isi koreksi dan keputusan disimpan untuk jejak historis.
+Cookie sesi HttpOnly/SameSite Strict, hashing kata sandi scrypt dengan salt, pemeriksaan origin pada mutasi browser, rate limiting login, UUID untuk file, validasi masukan, dan audit aktivitas diterapkan. File tidak berada di direktori publik. Perkara dapat dipindahkan ke tab Terhapus setelah konfirmasi, lalu dipulihkan kembali. BAP, lampiran, evaluasi, dan jejak keputusan tetap disimpan; akses PDF dan detail diblokir selama perkara terhapus. Dokumen gagal tanpa perkara dapat dihapus Komdis setelah konfirmasi. Isi koreksi dan keputusan disimpan untuk jejak historis.
 
 Untuk penerapan institusi, aktifkan TLS pada reverse proxy, `COOKIE_SECURE=true`, enkripsi volume/disk dan backup, pembatasan akun OS, rotasi/retensi audit, backup database, pengujian beban serta evaluasi hukum/regulasi oleh institusi. Enkripsi at rest mengandalkan infrastruktur, bukan enkripsi aplikasi. Mode server lokal default hanya bind `127.0.0.1`. Antarmuka menggunakan font Google bila jaringan tersedia; fallback font sistem tetap berjalan. Jangan publikasikan direktori `data` atau `.env`.
 
@@ -101,3 +101,7 @@ Pengujian menggunakan database sementara dan stub Ollama **hanya di test**, deng
 ## Batas versi awal
 
 Alur utama bekerja sebagai aplikasi lokal. Yang memerlukan pekerjaan lanjutan sebelum klaim sistem produksi lengkap: evaluasi penerapan aturan oleh institusi; pengujian model nyata pada data yang diizinkan; OCR; master identitas lintas perkara dan riwayat disiplin terintegrasi; kontrol per kasus/kampus; migrasi database; antrean pekerjaan tahan restart; manajemen pengguna lengkap (nonaktifkan/ubah peran/ganti sandi mandiri); tanda tangan dan mekanisme dokumen keputusan resmi; hardening operasional. Tidak ada deployment publik/cloud karena stack FastAPI/PostgreSQL/Ollama lokal ini tidak kompatibel langsung dengan runtime Sites Workers dan memerlukan lingkungan institusi.
+
+Filter Ringan/Sedang/Berat berlaku pada tab Pasal dan Pemetaan Sanksi. Tab Pasal menampilkan pasal perilaku dan dasar sanksi yang terkait melalui aturan versi regulasi aktif; teks pasal tetap utuh. Pada pemetaan, kategori dan rincian hanya berasal dari cabang aturan yang cocok dengan filter. Kelompok ketentuan dan pencarian tetap dapat dikombinasikan.
+
+Login desktop memakai kartu dua kolom; login mobile menempatkan logo dan form di tengah dengan palet navy yang sama. Tidak menambahkan pendaftaran atau login sosial dari contoh referensi.

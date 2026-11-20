@@ -3,3 +3,6 @@
 
 .upload-focused .upload-panel{padding-top:27px}.upload-focused .drop-zone small{color:#69758d}.upload-focused .upload-actions>.btn{margin-left:auto}
 @media(max-width:760px){.upload-focused .upload-panel{padding-top:20px}.upload-focused .upload-actions{align-items:stretch}.upload-focused .upload-actions>.btn{margin-left:0;justify-content:center}}
+
+.regulation-categories{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}.regulation-categories button{border:1px solid #dde2ed;border-radius:7px;background:#fff;padding:10px 15px;font-size:13px;color:#6b7894}.regulation-categories button.active{background:#25285f;border-color:#25285f;color:#fff;font-weight:600}.regulation-count{font-size:12px;color:#7e8ba4}.case-delete{color:#ae4153;min-width:36px;min-height:36px}.case-delete:hover{background:#fdebf0}.case-list-tabs{margin-bottom:20px}.case-list-tabs button{font-size:14px}.row-actions>.btn.secondary{padding:8px 11px}
+@media(max-width:760px){.regulation-categories{gap:7px}.regulation-categories button{padding:10px 12px;font-size:12px}}
