@@ -32,7 +32,7 @@ def main():
         user=db.scalar(select(User).where(User.email==args.email.lower()))
         if args.command=='init':
             if db.scalar(select(User)): raise SystemExit('Pengguna sudah tersedia. Buat pengguna berikutnya melalui Pengaturan.')
-            user=User(email=args.email.lower(),name=args.name,password=password_hash(password),role='admin')
+            user=User(email=args.email.lower(),name=args.name,password=password_hash(password),role='komdis')
             db.add(user); db.flush(); audit(db,user,'administrator_initialized',user.id)
         else:
             if not user: raise SystemExit('Pengguna tidak ditemukan.')

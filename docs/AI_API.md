@@ -5,7 +5,7 @@ Model dapat dijalankan di layanan OpenRouter, tanpa instalasi Ollama atau GPU pa
 ## Pengaturan lewat aplikasi
 
 1. Restart backend setelah pembaruan kode, lalu refresh browser.
-2. Masuk sebagai administrator dan buka **Pengaturan → Provider AI**.
+2. Masuk sebagai anggota Komdis dan buka **Pengaturan → Provider AI**.
 3. Pilih **OpenRouter · API Cloud**.
 4. Isi Model ID dari katalog OpenRouter yang mendukung `structured_outputs`, serta API key dari akun pengguna sendiri.
 5. Simpan, lalu pilih **Uji Koneksi**. Uji ini hanya memeriksa metadata key dan katalog model, tanpa mengirim isi BAP atau menjalankan inferensi berbayar. Daftar model mendukung schema kemudian tersedia pada saran input Model ID. Dukungan endpoint dan aturan privasi akun masih dapat memengaruhi ketersediaan model.

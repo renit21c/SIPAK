@@ -1,23 +1,26 @@
-# Ruang kerja per peran
+# Ruang kerja Komdis
 
-Identitas, navigasi, statistik, antrean, tindakan utama, notifikasi dan panduan menyesuaikan peran dari sesi backend. Tidak ada pemilih peran pada frontend yang dapat mengubah hak akses pengguna.
+SIPAK memakai satu peran operasional: `komdis`. Semua anggota menjalankan alur yang sama: unggah BAP, periksa sumber dan koreksi hasil, verifikasi, telaah ketentuan bila diperlukan, evaluasi, lalu unduh rekomendasi PDF.
 
-| Peran | Fokus dashboard | Navigasi khusus | Tindakan |
-|---|---|---|---|
-| Administrator | Kondisi sistem, dokumen gagal, antrean dan konfigurasi | Kelola Pengguna, Jejak Audit, Pengaturan | Kelola akun/provider, pemrosesan dan verifikasi; tidak mencatat keputusan resmi |
-| Pemeriksa | Pemrosesan BAP dan dokumen yang perlu diperbaiki | Ekstraksi BAP, Analisis, Riwayat | Unggah, telusuri sumber dan masukkan fakta analisis; tidak memverifikasi/menetapkan keputusan |
-| Verifikator | Antrean hasil belum terverifikasi dan progres verifikasi | Antrean Verifikasi, Pemeriksaan & Sanksi | Koreksi/verifikasi hasil, telaah klasifikasi, lengkapi pemeriksaan |
-| Pejabat berwenang | Perkara siap keputusan dan keputusan yang telah dicatat | Antrean Keputusan, Pemeriksaan, Laporan | Telaah lalu catat keputusan resmi setelah syarat proses lengkap; tidak mengunggah BAP atau mengubah provider |
-| Pengamat | Ringkasan perkara, hasil verifikasi dan laporan | Perkara, Laporan, Arsip, Regulasi | Baca/pratinjau/unduh; tanpa kontrol unggah, verifikasi, analisis tulis atau keputusan |
+Saat startup pertama setelah pembaruan ini, akun dengan peran lama otomatis dipindahkan ke Komdis. Email, hash password, identitas pengguna, sesi, perkara dan riwayat tetap dipertahankan. Perubahan tercatat pada audit. Peran lama tetap tersimpan sebagai referensi historis database, tetapi akun baru hanya dapat memakai Komdis. Tidak ada pemilih peran di form anggota. Seluruh anggota adalah pengguna internal tepercaya dan dapat mengelola konfigurasi AI serta menambah anggota; pembatasan antaranggota/perkara/kampus tidak diterapkan.
 
-Halaman akun untuk personel nonadmin menampilkan identitas dan hak akses. Editor provider, API key, pengelolaan pengguna dan audit hanya ditampilkan untuk administrator. Halaman yang tidak tersedia untuk suatu peran menampilkan penolakan akses meskipun hash URL diketik langsung. API tetap memeriksa izin setiap tindakan; menyembunyikan tombol bukan pengganti pemeriksaan backend.
+## Alur perkara
 
-Antrean verifikasi menyaring perkara yang belum diverifikasi. Antrean keputusan menampilkan perkara berstatus `Menunggu Keputusan Berwenang` serta daftar keputusan tercatat. Tombol pencatatan keputusan hanya tersedia bagi `decide`, dengan verifikasi dan sepuluh tahap awal pemeriksaan terpenuhi; backend tetap melakukan validasi ulang. Halaman Laporan menyediakan akses PDF untuk seluruh peran yang memiliki izin baca.
+1. Unggah PDF BAP berteks. OpenRouter tetap meminta persetujuan pengiriman isi dokumen per pekerjaan.
+2. AI mengekstrak informasi beserta halaman dan kutipan sumber. Keluaran tanpa sumber valid ditahan.
+3. Komdis mengoreksi data melalui form dan memverifikasinya. Koreksi menambah revisi; catatan dan snapshot lama tetap ada.
+4. Telaah ketentuan opsional memakai pilihan pasal, kondisi dan kutipan sumber melalui form. Kondisi belum diketahui tidak diasumsikan sebagai tidak/false.
+5. Evaluasi menentukan `Perlu perbaikan` atau `Lanjutkan`. Perbaikan mengembalikan perkara ke verifikasi. Lanjutkan memerlukan BAP terverifikasi, ringkasan evaluasi, rekomendasi dan dasar pertimbangan.
+6. Endpoint rekomendasi PDF hanya melayani evaluasi Lanjutkan untuk revisi dan hasil analisis terbaru. PDF memuat watermark SIPAK pada setiap halaman, evaluator, dasar pertimbangan, usulan tindak lanjut, fakta BAP, bukti, saksi, kronologi dan sumbernya.
 
-Perubahan ini membedakan ruang kerja dan tindakan, bukan menerapkan pembatasan baca per perkara/kampus. Izin baca workspace yang sudah ada tetap berlaku; seluruh data yang ditampilkan berasal dari database, tanpa statistik demonstrasi.
+Hasil ini merupakan rekomendasi Komdis. Pencatatan keputusan resmi tidak menjadi fitur operasional akun Komdis. Arsip keputusan dari versi sebelumnya tetap dibaca dan mengunci perubahan perkara tersebut.
 
-## API key dan Git/deployment
+Perubahan BAP, analisis baru, atau evaluasi Perlu perbaikan membuat PDF rekomendasi belum dapat diunduh sampai evaluasi diperbarui. PDF yang sudah diunduh tetap memuat identitas evaluasi dan revisi asal; berkas lama di luar aplikasi tidak dapat ditarik kembali.
 
-API key yang disimpan melalui Pengaturan berada pada `.env` backend dan dipakai bersama oleh proses SIPAK pada server tersebut. Pengguna/role operasional tidak perlu memasukkan key sendiri. Git push tidak menghapus atau memindahkan file `.env` lokal. `.env`, variasi `.env.*` selain contoh, dan berkas konfigurasi sementara diabaikan oleh Git serta konteks Docker.
+## API key dan deployment
 
-Key tidak ikut berpindah melalui push/clone karena tidak berada di source. Server/hosting baru harus diberi `OPENROUTER_API_KEY`, `AI_PROVIDER` dan `AI_MODEL` melalui secret/environment hosting atau `.env` privat pada server. Secret yang dipasang permanen pada layanan hosting dapat digunakan oleh deployment berikutnya tanpa mengetik ulang. Jangan memaksa `.env` masuk commit. Jika suatu secret pernah telanjur masuk commit, mengabaikan file tidak menghapus secret dari riwayat; ganti key tersebut.
+API key tersimpan pada `.env` backend dan digunakan oleh proses server bersama. `.env`, database, unggahan dan screenshot pengujian tidak masuk Git. Push tidak menghapus key lokal. Server/hosting baru memerlukan secret/environment tersendiri; secret hosting yang persisten dapat dipakai kembali pada deployment selanjutnya. Jangan memasukkan `.env` ke commit.
+
+## Antarmuka
+
+Login hanya menampilkan identitas SIPAK, judul Komdis, satu animasi palu dan form masuk. Tombol mata menampilkan/menyembunyikan password tanpa mengubah nilainya. Tombol jeda animasi dihapus. Preferensi sistem reduced motion tetap dihormati. Menu utama terdiri dari Ringkasan, Unggah BAP, Perkara, Rekomendasi, Arsip BAP, Regulasi dan Pengaturan. Pengelolaan anggota dan audit berada dalam Pengaturan.

@@ -86,16 +86,17 @@ def test_review_validation_and_revision(case,client):
     assert reviewed['records'][-1]['payload']['extraction_snapshot']
     assert client.put('/api/cases/'+case['id']+'/review',json={'extraction':case['extraction'],'note':'Revisi lama ditolak.','approve':True,'expected_revision':before}).status_code==409
 
-def test_roles_and_logout(client,case):
-    r=client.post('/api/users',json={'email':'viewer@test.local','name':'Pengamat Pengujian','password':'Viewer-password-test!','role':'viewer'})
-    assert r.status_code==200
+def test_komdis_and_logout(client,case):
+    r=client.post('/api/users',json={'email':'komdis@test.local','name':'Anggota Pengujian','password':'Komdis-password-test!'})
+    assert r.status_code==200 and r.json()['role']=='komdis'
+    assert client.post('/api/users',json={'email':'old@test.local','name':'Old Role','password':'Something-long-test!','role':'viewer'}).status_code==422
     client.post('/api/auth/logout')
     assert client.get('/api/auth/me').status_code==401
-    assert client.post('/api/auth/login',json={'email':'viewer@test.local','password':'Viewer-password-test!'}).status_code==200
+    assert client.post('/api/auth/login',json={'email':'komdis@test.local','password':'Komdis-password-test!'}).status_code==200
     assert client.get('/api/cases').status_code==200
-    assert client.post('/api/users',json={'email':'blocked@test.local','name':'Blocked','password':'Something-long-test!','role':'admin'}).status_code==403
-    assert client.post('/api/cases/'+case['id']+'/notes',json={'text':'Catatan tidak berwenang'}).status_code==403
-    assert client.post('/api/cases/'+case['id']+'/decisions',json={'number':'X','sanction':'X','basis':'X','reason':'X','official':'X','date':'2026-01-01'}).status_code==403
+    assert client.post('/api/cases/'+case['id']+'/notes',json={'text':'Catatan evaluasi anggota Komdis.'}).status_code==200
+    assert client.post('/api/cases/'+case['id']+'/decisions',json={'number':'SK-UJI','sanction':'Sanksi sintetis','basis':'Dasar pengujian sintetis','reason':'Alasan pengujian sintetis','official':'Pejabat Uji','date':'2026-01-01'}).status_code==403
+
 
 def regulation_pdf():
     doc=fitz.open();p=doc.new_page()
@@ -132,27 +133,20 @@ def test_regulation_versioning_and_matching(case,client):
     facts['conduct']['sources']=[{'page':1,'quote':'Sumber palsu'}]
     assert client.post(path,json={'facts':facts,'note':'Sumber palsu ditolak.'}).status_code==422
 
-def test_decision_workflow_and_report(case,client,pdf_bytes):
+def test_legacy_decision_archive_stays_locked(case,client):
+    from backend.app.models import Decision,Case
     c=verify(client,case);path='/api/cases/'+c['id']
-    d={'number':'SK-UJI-01','sanction':'Keputusan sintetis uji','basis':'Ketentuan pengujian saja','reason':'Pertimbangan pengujian saja','official':'Pejabat Pengujian','date':'2026-01-01'}
-    assert client.post(path+'/decisions',json=d).status_code==403 # admin != decision maker
-    a=client.post(path+'/attachments',files={'file':('lampiran-uji.pdf',pdf_bytes,'application/pdf')}).json()
-    stage={'stage':0,'date':'2026-01-01','responsible':'Petugas Uji','note':'Tahap pengujian selesai.','attachment_ids':[a['id']]}
-    assert client.post(path+'/workflow',json=stage|{'stage':1}).status_code==409
-    for i in range(10):
-        r=client.post(path+'/workflow',json=stage|{'stage':i});assert r.status_code==200,r.text
-    assert client.post(path+'/workflow',json=stage|{'stage':10}).status_code==409
-    client.post('/api/users',json={'email':'official@test.local','name':'Pejabat Uji','password':'Official-password-test!','role':'decision_maker'})
-    client.post('/api/auth/logout');client.post('/api/auth/login',json={'email':'official@test.local','password':'Official-password-test!'})
-    assert client.post(path+'/decisions',json=d).status_code==200
+    with SessionLocal() as db:
+        user=db.query(User).first()
+        db.add(Decision(case_id=c['id'],created_by=user.id,number='SK-UJI-01',sanction='Keputusan sintetis uji',basis='Ketentuan pengujian saja',reason='Pertimbangan pengujian saja',official='Pejabat Pengujian',date='2026-01-01'))
+        db.get(Case,c['id']).status='Keputusan Resmi Diterbitkan';db.commit()
     assert client.post(path+'/notes',json={'text':'Perkara telah dikunci.'}).status_code==409
-    assert client.post(path+'/workflow',json=stage|{'stage':10}).status_code==200
-    assert client.post(path+'/workflow',json=stage|{'stage':11}).status_code==200
     report=client.get(path+'/report');assert report.status_code==200
     with fitz.open(stream=report.content,filetype='pdf') as pdf:
         body=' '.join(p.get_text() for p in pdf)
         assert 'BUKAN DOKUMEN KEPUTUSAN RESMI' in body
         assert 'SK-UJI-01' in body and 'Budi Uji' in body
+
 
 def test_login_rate_limit(client):
     for _ in range(8):

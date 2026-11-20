@@ -38,7 +38,11 @@ def case_dict(db, case, detail=False):
     assessments = db.scalars(select(Assessment).where(Assessment.case_id==case.id).order_by(Assessment.created_at.desc())).all()
     latest = assessments[0] if assessments else None
     result = latest.result if latest and latest.case_revision==case.revision else []
-    output = {'id':case.id,'number':case.number,'status':case.status,'verified':case.verified,'revision':case.revision,'created_at':case.created_at,'document':document_dict(doc),'information':extraction['case_information'],'persons':extraction['involved_persons'],'analysis':result}
+    assessment_id=latest.id if latest and latest.case_revision==case.revision else None
+    evaluation=db.scalar(select(Record).where(Record.case_id==case.id,Record.kind=='evaluation').order_by(Record.created_at.desc()))
+    evaluation_data=({'id':evaluation.id,'payload':evaluation.payload,'created_at':evaluation.created_at,'created_by':db.get(User,evaluation.created_by).name} if evaluation else None)
+    ready=bool(case.verified and evaluation and evaluation.payload.get('outcome')=='proceed' and evaluation.payload.get('revision')==case.revision and evaluation.payload.get('assessment_id')==assessment_id)
+    output = {'id':case.id,'number':case.number,'status':case.status,'verified':case.verified,'revision':case.revision,'created_at':case.created_at,'document':document_dict(doc),'information':extraction['case_information'],'persons':extraction['involved_persons'],'analysis':result,'latest_assessment_id':assessment_id,'evaluation':evaluation_data,'recommendation_ready':ready}
     if detail:
         output['extraction']=extraction
         output['records']=[{'id':r.id,'kind':r.kind,'payload':r.payload,'created_at':r.created_at,'created_by':db.get(User,r.created_by).name} for r in db.scalars(select(Record).where(Record.case_id==case.id).order_by(Record.created_at))]

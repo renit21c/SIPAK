@@ -6,11 +6,7 @@ from .database import get_db
 from .models import User, Session, Role, Audit
 
 PERMISSIONS = {
-    'admin': ['read','upload','review','analyze','regulations','users','delete'],
-    'investigator': ['read','upload','analyze'],
-    'reviewer': ['read','upload','review','analyze'],
-    'decision_maker': ['read','review','analyze','decide'],
-    'viewer': ['read'],
+    'komdis': ['read','upload','review','analyze','regulations','users','delete'],
 }
 
 def password_hash(password):

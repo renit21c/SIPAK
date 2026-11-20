@@ -128,8 +128,7 @@ def test_connection_check_is_metadata_only(client,monkeypatch):
     assert result.json()['available_models']==[{'id':'test/model','name':'test/model'}]
     assert paths==[('GET','/api/v1/key'),('GET','/api/v1/models')]
 
-def test_viewer_cannot_change_provider(client):
-    client.post('/api/users',json={'email':'viewer-cloud@test.local','name':'Viewer','password':'Viewer-test-password!','role':'viewer'})
-    client.post('/api/auth/logout');client.post('/api/auth/login',json={'email':'viewer-cloud@test.local','password':'Viewer-test-password!'})
-    assert client.put('/api/settings/ai',json={'provider':'openrouter','model':'test/model','api_key':FAKE_KEY}).status_code==403
-    assert client.post('/api/settings/ai/check').status_code==403
+def test_anonymous_cannot_change_provider(client):
+    client.post('/api/auth/logout')
+    assert client.put('/api/settings/ai',json={'provider':'openrouter','model':'test/model','api_key':FAKE_KEY}).status_code==401
+    assert client.post('/api/settings/ai/check').status_code==401

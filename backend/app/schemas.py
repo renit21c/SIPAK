@@ -88,7 +88,22 @@ class InferenceConsent(Strict):
 
 class UserCreate(Login):
     name: str = Field(min_length=2,max_length=200)
-    role: Literal['admin','investigator','reviewer','decision_maker','viewer']
+    role: Literal['komdis'] = 'komdis'
+
+class Evaluation(Strict):
+    outcome: Literal['proceed','revise']
+    summary: str = Field(min_length=10,max_length=10000)
+    recommendation: str = Field(default='',max_length=10000)
+    basis: str = Field(default='',max_length=10000)
+    category: Literal['Belum ditentukan','Ringan','Sedang','Berat'] = 'Belum ditentukan'
+    sanction: str = Field(default='',max_length=2000)
+    expected_revision: int
+    expected_assessment_id: str | None = None
+
+    @field_validator('summary','recommendation','basis','sanction')
+    @classmethod
+    def strip_text(cls,value):
+        return value.strip()
 
 class Review(Strict):
     extraction: Extraction

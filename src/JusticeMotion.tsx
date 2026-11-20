@@ -1,12 +1,3 @@
-import {useEffect,useState} from 'react';
-import {Pause,Play} from 'lucide-react';
-
-export function MotionControl(){
- const [paused,setPaused]=useState(()=>{try{return localStorage.getItem('sipak-motion')==='paused'}catch{return false}});
- useEffect(()=>{document.documentElement.dataset.motion=paused?'paused':'on';try{localStorage.setItem('sipak-motion',paused?'paused':'on')}catch{}},[paused]);
- return <button className="icon-btn motion-control" type="button" aria-label={paused?'Aktifkan animasi':'Jeda animasi'} title={paused?'Aktifkan animasi':'Jeda animasi'} aria-pressed={paused} onClick={()=>setPaused(!paused)}>{paused?<Play size={17}/>:<Pause size={17}/>}</button>;
-}
-
 export function JusticeMotion(){
  return <div className="justice-scene" aria-hidden="true">
   <div className="justice-halo"/><div className="justice-orbit"/>

@@ -24,7 +24,7 @@ Pengembangan: jalankan backend dengan `--reload`, lalu `npm.cmd run dev` pada te
 
 ## AI melalui API
 
-Default provider sekarang **OpenRouter**. Ollama dan GPU tidak diperlukan untuk mode API. Setelah login admin, buka **Pengaturan → Provider AI**, pilih OpenRouter, isi Model ID yang mendukung structured outputs serta API key, simpan, lalu uji koneksi. Pengujian koneksi hanya mengakses metadata key/katalog model; tidak mengirim BAP atau menjalankan inferensi berbayar. Key disimpan pada `.env` backend dan tidak pernah dikembalikan ke frontend. Lihat [panduan API](docs/AI_API.md).
+Default provider sekarang **OpenRouter**. Ollama dan GPU tidak diperlukan untuk mode API. Setelah login Komdis, buka **Pengaturan â†’ Provider AI**, pilih OpenRouter, isi Model ID yang mendukung structured outputs serta API key, simpan, lalu uji koneksi. Pengujian koneksi hanya mengakses metadata key/katalog model; tidak mengirim BAP atau menjalankan inferensi berbayar. Key disimpan pada `.env` backend dan tidak pernah dikembalikan ke frontend. Lihat [panduan API](docs/AI_API.md).
 
 Setiap unggah atau proses ulang melalui OpenRouter memerlukan persetujuan pengiriman teks BAP ke OpenRouter dan penyedia model. Backend memeriksa persetujuan, provider dan model sebelum memproses. Snapshot konfigurasi melekat pada satu pekerjaan agar tujuan tidak berubah ketika pengaturan diganti. Key tidak dimasukkan ke audit; provider, model dan persetujuan tercatat. Tidak ada fallback otomatis. Harga/kredit mengikuti akun dan model pengguna.
 
@@ -41,7 +41,7 @@ SQLite adalah fallback pengembangan agar aplikasi dapat dijalankan tanpa layanan
 1. Tetapkan `POSTGRES_PASSWORD` pada `.env`.
 2. Jalankan `docker compose up -d db`.
 3. Tetapkan `DATABASE_URL=postgresql+psycopg://sipak:PASSWORD@localhost:5432/sipak` (URL-encode kata sandi bila perlu).
-4. Inisialisasi admin pada database tersebut, lalu jalankan ulang backend.
+4. Inisialisasi akun Komdis pada database tersebut, lalu jalankan ulang backend.
 
 Skema dibentuk saat startup untuk database baru. Data SQLite tidak dipindahkan otomatis. Sebelum perubahan skema produksi, buat backup dan migrasi terkontrol; Alembic belum disediakan. Relasi dokumen, halaman, perkara, entitas, kutipan sumber, versi regulasi, pasal, aturan, pemeriksaan, penilaian, keputusan, pengguna, sesi dan audit memakai foreign key. Detail ekstraksi dinamis disimpan sebagai entitas bertipe JSON; pemisahan lebih lanjut ke master person dan riwayat disiplin lintas perkara belum diimplementasikan.
 
@@ -49,7 +49,7 @@ Skema dibentuk saat startup untuk database baru. Data SQLite tidak dipindahkan o
 
 Regulasi sudah tersedia sebagai **bawaan aplikasi** dari PDF yang diberikan pengguna: `backend/assets/regulations/permendagri-8-2026.pdf`. Seluruh 25 halaman dan 61 pasal dipaketkan, dengan tanggal berlaku 2 Maret 2026 sesuai naskah. Saat startup SIPAK memeriksa checksum, lalu memasang indeks dan 486 cabang aturan kondisional tanpa unggah manual. Restart tidak membuat duplikat atau menimpa data perkara. Menu Regulasi menyediakan pencarian pasal, sumber PDF dan pemetaan sanksi; versi bawaan bersifat tetap.
 
-Aturan merujuk ketentuan perilaku dan Pasal 35–39, termasuk sanksi kumulatif, tingkat Praja, akibat, dan pengulangan. Sanksi tidak tampil ketika syarat kurang. Beberapa ketentuan mengenai karakteristik sensitif disediakan sebagai rujukan saja, tanpa pencocokan sanksi otomatis. Penilaian tetap memerlukan fakta bersumber dan telaah manusia. Lihat [panduan regulasi](docs/REGULASI.md) untuk arti kondisi, sumber dan batas penerapan. API impor versi lain tetap tersedia untuk pengembangan versi mendatang; penggunaan normal tidak memerlukannya.
+Aturan merujuk ketentuan perilaku dan Pasal 35â€“39, termasuk sanksi kumulatif, tingkat Praja, akibat, dan pengulangan. Sanksi tidak tampil ketika syarat kurang. Beberapa ketentuan mengenai karakteristik sensitif disediakan sebagai rujukan saja, tanpa pencocokan sanksi otomatis. Penilaian tetap memerlukan fakta bersumber dan telaah manusia. Lihat [panduan regulasi](docs/REGULASI.md) untuk arti kondisi, sumber dan batas penerapan. API impor versi lain tetap tersedia untuk pengembangan versi mendatang; penggunaan normal tidak memerlukannya.
 
 Contoh bentuk fakta (gunakan kutipan nyata, bukan teks contoh):
 
@@ -63,21 +63,19 @@ Contoh bentuk fakta (gunakan kutipan nyata, bukan teks contoh):
 
 Nilai kosong tidak berarti false atau tidak ada pengulangan; jangan mengisi fakta yang tidak didukung sumber. Penilaian menyimpan versi aturan, kutipan, sumber BAP dan revisi perkara. Koreksi ekstraksi membatalkan tampilan penilaian aktif sampai dinilai ulang; riwayat sebelumnya tetap tersedia. Sistem tidak memverifikasi kebenaran semantik otomatis di luar sumber kutipan dan kondisi yang disusun manusia.
 
-Template 12 tahap pemeriksaan mengikuti spesifikasi pengguna dan diberi label untuk dicocokkan dengan naskah resmi, termasuk perbedaan kewenangan kampus. Tiap tahap menyimpan tanggal, penanggung jawab, lampiran PDF, catatan dan pembuat catatan; tahapan berurutan dan tidak ditimpa. Pencatatan keputusan hanya untuk peran `decision_maker`, setelah verifikasi dan sepuluh tahap awal. Keputusan dicatat dari dokumen resmi yang telah ditetapkan; aplikasi tidak menandatangani atau menerbitkan keputusan administratif. Perkara dikunci sesudah keputusan, sementara tahap penyampaian masih dapat dilengkapi. Laporan PDF selalu berlabel pendahuluan dan mencantumkan keputusan yang telah dicatat secara terpisah.
+## Alur Komdis dan rekomendasi
+
+Satu ruang kerja Komdis: **unggah BAP → proses AI → periksa/verifikasi → evaluasi → rekomendasi PDF**. Fakta, sumber, bukti, saksi, kronologi, telaah ketentuan dan riwayat tersedia dalam detail perkara. Koreksi serta penilaian ketentuan memakai form tanpa masukan JSON.
+
+Evaluasi `Perlu perbaikan` mengembalikan perkara ke verifikasi. Evaluasi `Lanjutkan` memerlukan hasil terverifikasi, ringkasan, rekomendasi dan dasar pertimbangan. Dokumen rekomendasi memuat watermark SIPAK pada setiap halaman. Perubahan revisi atau analisis membatalkan kesiapan PDF sampai dievaluasi ulang. Rekomendasi merupakan hasil telaah manusia Komdis, sedangkan hasil AI tetap menjadi bahan pemeriksaan.
 
 ## Hak akses dan privasi
 
-| Peran | Kewenangan |
-|---|---|
-| admin | Baca, unggah, verifikasi, analisis, kelola regulasi/pengguna, hapus dokumen gagal tanpa perkara |
-| investigator | Baca, unggah, masukkan fakta analisis |
-| reviewer | Baca, unggah, verifikasi, analisis, pemeriksaan |
-| decision_maker | Baca, verifikasi, analisis, catat keputusan resmi |
-| viewer | Baca dan unduh laporan/dokumen |
+Akun baru hanya memiliki peran `komdis`: baca, unggah, koreksi/verifikasi, analisis, evaluasi/rekomendasi, konfigurasi sistem dan anggota. Akun lama otomatis disatukan ke Komdis saat startup, tanpa mengubah email/password atau menghapus riwayat. Semua anggota adalah pengguna internal tepercaya dengan akses workspace bersama. Arsip keputusan resmi versi lama dipertahankan dan tetap terkunci; Komdis tidak diberikan izin menetapkan keputusan resmi. Lihat [panduan Komdis](docs/ROLES.md).
 
-Pengguna terautentikasi yang memiliki izin baca dapat membaca semua perkara workspace. Pembatasan akses per perkara/kampus belum tersedia. Administrator bukan otomatis pejabat penetap keputusan. Buat akun berwenang melalui Pengaturan. Reset kata sandi lokal tersedia melalui `python -m backend.manage reset-password --email ...`; seluruh sesi pengguna itu dicabut.
+Reset kata sandi lokal tersedia melalui `python -m backend.manage reset-password --email ...`; seluruh sesi pengguna tersebut dicabut.
 
-Cookie sesi HttpOnly/SameSite Strict, hashing kata sandi scrypt dengan salt, pemeriksaan origin pada mutasi browser, rate limiting login, UUID untuk file, validasi masukan, dan audit aktivitas diterapkan. File tidak berada di direktori publik. Dokumen terkait perkara tidak dapat dihapus melalui UI; dokumen gagal tanpa perkara dapat dihapus admin setelah konfirmasi. Isi koreksi dan keputusan disimpan untuk jejak historis.
+Cookie sesi HttpOnly/SameSite Strict, hashing kata sandi scrypt dengan salt, pemeriksaan origin pada mutasi browser, rate limiting login, UUID untuk file, validasi masukan, dan audit aktivitas diterapkan. File tidak berada di direktori publik. Dokumen terkait perkara tidak dapat dihapus melalui UI; dokumen gagal tanpa perkara dapat dihapus Komdis setelah konfirmasi. Isi koreksi dan keputusan disimpan untuk jejak historis.
 
 Untuk penerapan institusi, aktifkan TLS pada reverse proxy, `COOKIE_SECURE=true`, enkripsi volume/disk dan backup, pembatasan akun OS, rotasi/retensi audit, backup database, pengujian beban serta evaluasi hukum/regulasi oleh institusi. Enkripsi at rest mengandalkan infrastruktur, bukan enkripsi aplikasi. Mode server lokal default hanya bind `127.0.0.1`. Antarmuka menggunakan font Google bila jaringan tersedia; fallback font sistem tetap berjalan. Jangan publikasikan direktori `data` atau `.env`.
 

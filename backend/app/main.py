@@ -18,7 +18,7 @@ from .services.extraction import validate_sources, local_ollama_url
 from .services.pipeline import process_document
 from .services.cases import document_dict, case_dict, save_extraction
 from .services.regulations import split_articles, classify
-from .services.reports import generate_report
+from .services.reports import generate_report, generate_recommendation
 from .services.builtin_regulation import seed_builtin_regulation, builtin_metadata, BUILTIN_ID
 from .services.ai_provider import snapshot,public_config,save_configuration,ensure_ready,check_openrouter,OPENROUTER_URL
 import httpx
@@ -30,9 +30,14 @@ async def lifespan(app):
         for name,permissions in PERMISSIONS.items():
             if not db.get(Role,name): db.add(Role(name=name,permissions=permissions))
         db.flush()
+        # Consolidate existing accounts without changing credentials or case history.
+        for account in db.scalars(select(User).where(User.role!='komdis')):
+            old_role=account.role
+            account.role='komdis'
+            audit(db,account,'workspace_consolidated',account.id,{'previous_role':old_role,'role':'komdis'})
         seed_builtin_regulation(db)
         if not db.scalar(select(User)) and settings.bootstrap_email and len(settings.bootstrap_password)>=12:
-            db.add(User(email=settings.bootstrap_email.lower(),name=settings.bootstrap_name,password=password_hash(settings.bootstrap_password),role='admin'))
+            db.add(User(email=settings.bootstrap_email.lower(),name=settings.bootstrap_name,password=password_hash(settings.bootstrap_password),role='komdis'))
         db.execute(update(Document).where(Document.status.in_(['Menunggu','Sedang Diproses'])).values(status='Gagal',error='Pemrosesan terhenti saat server dimulai ulang. Silakan coba kembali.'))
         db.commit()
     yield
@@ -207,7 +212,7 @@ def review(case_id:str,data:Review,user:User=Depends(require('review')),db:DBSes
     if validated.model_dump()!=data.extraction.model_dump():
         raise HTTPException(422,'Setiap informasi wajib memiliki kutipan yang cocok dengan halaman sumber. Periksa kembali hasil koreksi.')
     save_extraction(db,case,data.extraction); case.verified=data.approve; case.revision+=1
-    case.status='Pemeriksaan Selesai' if data.approve else 'Dalam Pemeriksaan Manusia'
+    case.status='Siap Evaluasi' if data.approve else 'Perlu Perbaikan'
     db.add(Record(case_id=case.id,created_by=user.id,kind='verification',payload={'approved':data.approve,'note':data.note,'revision':case.revision,'extraction_snapshot':data.extraction.model_dump()}))
     audit(db,user,'extraction_reviewed',case.id,{'approved':data.approve,'revision':case.revision}); db.commit()
     return case_dict(db,case,True)
@@ -223,15 +228,46 @@ def analysis(case_id:str,data:AnalysisInput,user:User=Depends(require('analyze')
     facts={k:v.model_dump() for k,v in data.facts.items()}; result=classify(db,facts)
     db.add(Assessment(case_id=case.id,created_by=user.id,facts=facts,result=result,case_revision=case.revision))
     db.add(Record(case_id=case.id,created_by=user.id,kind='analysis',payload={'note':data.note,'revision':case.revision}))
+    case.status='Siap Evaluasi'
     audit(db,user,'regulatory_analysis',case.id,{'matches':len(result)}); db.commit()
     return {'matches':result,'message':'Belum cukup informasi untuk menentukan kecocokan ketentuan.' if not result else 'Penilaian awal memerlukan telaah manusia.'}
 
 @app.post('/api/cases/{case_id}/notes')
 def note(case_id:str,data:Note,user:User=Depends(require('review')),db:DBSession=Depends(get_db)):
     case=get_case(db,case_id); ensure_mutable(db,case)
+    if data.kind=='commission_recommendation':
+        raise HTTPException(409,'Simpan rekomendasi melalui evaluasi Komdis agar revisi dan hasil telaah tercatat.')
     db.add(Record(case_id=case.id,created_by=user.id,kind=data.kind,payload={'text':data.text}))
     if data.kind=='commission_recommendation': case.status='Rekomendasi Diterbitkan'
     audit(db,user,data.kind,case.id); db.commit(); return {'ok':True}
+
+@app.post('/api/cases/{case_id}/evaluation')
+def evaluate(case_id:str,data:Evaluation,user:User=Depends(require('review')),db:DBSession=Depends(get_db)):
+    case=get_case(db,case_id); ensure_mutable(db,case)
+    current=case_dict(db,case,True)
+    if data.expected_revision!=case.revision or data.expected_assessment_id!=current['latest_assessment_id']:
+        raise HTTPException(409,'Data berubah. Muat ulang dan periksa kembali sebelum menyimpan evaluasi.')
+    if len(data.summary)<10: raise HTTPException(422,'Ringkasan evaluasi minimal 10 karakter.')
+    if data.outcome=='proceed':
+        if not case.verified: raise HTTPException(409,'Verifikasi hasil BAP sebelum melanjutkan ke rekomendasi.')
+        if len(data.recommendation)<10 or len(data.basis)<10:
+            raise HTTPException(422,'Lengkapi rekomendasi dan dasar pertimbangan, minimal 10 karakter masing-masing.')
+    payload=data.model_dump(exclude={'expected_revision','expected_assessment_id'})
+    payload.update(revision=case.revision,assessment_id=current['latest_assessment_id'])
+    db.add(Record(case_id=case.id,created_by=user.id,kind='evaluation',payload=payload))
+    if data.outcome=='revise': case.verified=False
+    case.status='Rekomendasi Siap' if data.outcome=='proceed' else 'Perlu Perbaikan'
+    audit(db,user,'komdis_evaluation',case.id,{'outcome':data.outcome,'revision':case.revision})
+    db.commit();return case_dict(db,case,True)
+
+@app.get('/api/cases/{case_id}/recommendation')
+def recommendation(case_id:str,user:User=Depends(require('read')),db:DBSession=Depends(get_db)):
+    case=get_case(db,case_id); current=case_dict(db,case,True)
+    if not current['recommendation_ready']:
+        raise HTTPException(409,'Rekomendasi belum siap. Verifikasi BAP dan simpan evaluasi Lanjutkan untuk revisi serta analisis terbaru.')
+    content=generate_recommendation(current,user.name)
+    audit(db,user,'recommendation_generated',case.id,{'evaluation_id':current['evaluation']['id'],'revision':case.revision});db.commit()
+    return Response(content,media_type='application/pdf',headers={'Content-Disposition':f'inline; filename="Rekomendasi-{case.number}.pdf"'})
 
 @app.post('/api/cases/{case_id}/attachments')
 async def attachment(case_id:str,file:UploadFile=File(...),user:User=Depends(require('upload')),db:DBSession=Depends(get_db)):
