@@ -1,0 +1,67 @@
+/* Decorative motion stays on transforms/opacity; no animation changes layout. */
+.login-story{background:radial-gradient(ellipse at 8% 15%,#3f417c 0,transparent 55%),linear-gradient(145deg,#292c63,#1c204d);padding:42px 9%;isolation:isolate}
+.login-brand-row{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2}
+.login-brand-row .motion-control{color:#ccd0ec;border:1px solid #ffffff24;background:#ffffff08}
+.motion-control{color:#858ba5;min-width:34px;min-height:34px;flex-shrink:0}
+.motion-control[aria-pressed=true]{background:#e9eaf4;color:#4d5482}
+.login-narrative{position:relative;z-index:1;width:100%;margin:30px 0}
+.login-story .eyebrow{font-size:10px;letter-spacing:1.4px}
+.login-story h1{font-size:clamp(29px,3.1vw,45px);line-height:1.35;margin:22px 0 0}
+.login-story .login-values{margin-top:10px;gap:18px}
+.login-story .login-values span{font-size:12px}
+.login-story>small{line-height:1.8;font-size:11px;position:relative;z-index:1}
+.justice-scene{position:relative;width:100%;max-width:540px;margin:0 auto;isolation:isolate;pointer-events:none}
+.justice-art{position:relative;display:block;width:100%;height:auto;overflow:visible;filter:drop-shadow(0 16px 28px #10133430)}
+.justice-halo{position:absolute;inset:8% 15%;border-radius:50%;background:radial-gradient(ellipse,#8886bb26,transparent 70%);animation:justice-glow 6s ease-in-out infinite}
+.justice-orbit{position:absolute;inset:6% 20% 4%;border:1px solid #c6c9ea15;border-radius:50%;transform:rotate(-20deg)}
+.justice-orbit:before,.justice-orbit:after{content:'';position:absolute;inset:15px -36px;border:1px solid #c6c9ea0c;border-radius:50%}
+.justice-orbit:after{inset:32px -70px}
+.justice-gavel{transform-box:view-box;transform-origin:333px 198px;animation:justice-strike 6s cubic-bezier(.45,0,.3,1) infinite}
+.justice-impact{opacity:0;transform-origin:249px 217px;animation:justice-impact 6s ease-out infinite}
+.justice-paper{transform-box:fill-box;transform-origin:center;animation:justice-float 7s ease-in-out infinite}
+.justice-balance{transform-box:view-box;transform-origin:102px 110px;animation:justice-balance 7s ease-in-out infinite}
+.justice-sparks{animation:justice-glow 4s ease-in-out infinite}
+@keyframes justice-strike{0%,12%,68%,100%{transform:rotate(0)}30%,39%{transform:rotate(16deg)}47%{transform:rotate(-20deg)}53%{transform:rotate(-15deg)}60%{transform:rotate(-20deg)}}
+@keyframes justice-impact{0%,46%,64%,100%{opacity:0;transform:scale(.82)}49%{opacity:.8;transform:scale(1)}62%{opacity:0;transform:scale(1.13)}}
+@keyframes justice-float{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-7px) rotate(1deg)}}
+@keyframes justice-balance{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(4deg)}}
+@keyframes justice-glow{0%,100%{opacity:.45}50%{opacity:1}}
+.login-lock{position:relative;box-shadow:0 5px 20px #b86a820a;animation:lock-arrive 700ms var(--motion-ease) both}
+.login-lock:after{content:'';position:absolute;inset:-7px;border:1px solid #e9c9d655;border-radius:15px;animation:lock-ring 4s ease-in-out infinite}
+.login-form .field{animation:panel-appear 500ms var(--motion-ease) backwards;animation-delay:170ms}
+.login-form .field:nth-child(2){animation-delay:240ms}
+.login-form input{transition:box-shadow 200ms,border-color 200ms,background 200ms}
+.login-form input:focus{box-shadow:0 0 0 5px #777ab210;background:#fdfdff}
+@keyframes lock-arrive{from{opacity:0;transform:translateY(8px) rotate(-8deg)}to{opacity:1;transform:none}}
+@keyframes lock-ring{0%,100%{opacity:.4;transform:scale(.94)}50%{opacity:1;transform:scale(1.04)}}
+.role-emblem{z-index:1;pointer-events:none}
+.role-emblem>div{animation:emblem-breathe 7s ease-in-out infinite}
+.role-emblem>svg{animation:emblem-float 6s ease-in-out infinite}
+.role-decision_maker .role-emblem>svg{transform-origin:75% 80%;animation:emblem-gavel 6s ease-in-out infinite}
+@keyframes emblem-breathe{0%,100%{opacity:.45;transform:scale(.96)}50%{opacity:1;transform:scale(1.05)}}
+@keyframes emblem-float{0%,100%{transform:translateY(3px)}50%{transform:translateY(-6px)}}
+@keyframes emblem-gavel{0%,15%,65%,100%{transform:rotate(0)}35%{transform:rotate(13deg)}44%{transform:rotate(-9deg)}53%{transform:rotate(0)}}
+/* Icons respond to deliberate interaction, keeping working tables calm. */
+.quick-icon,.stat-icon,.sidebar nav a>svg,.btn>svg,.icon-action>svg,.regulation-link svg{transition:transform 240ms var(--motion-ease),background-color 200ms,box-shadow 240ms}
+@media(hover:hover){
+ .quick-grid>button:hover .quick-icon{transform:translateY(-3px) rotate(-7deg);box-shadow:0 5px 14px #25285f14}
+ .stat-card:hover .stat-icon{transform:rotate(7deg) scale(1.08)}
+ .sidebar nav a:hover>svg{transform:translateY(-2px) rotate(-6deg)}
+ .btn:hover:not(:disabled)>svg,.icon-action:hover>svg{transform:translateY(-2px)}
+ .regulation-link:hover svg{transform:rotate(-8deg)}
+ .login-values span:hover svg{transform:translateY(-3px)}
+}
+.login-values svg{transition:transform 240ms var(--motion-ease)}
+html[data-motion=paused] *,html[data-motion=paused] *:before,html[data-motion=paused] *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+@media(max-width:1100px){.login-story{padding:36px 7%}.login-story .login-values{gap:12px}.login-story .login-values span{font-size:11px}.login-story h1{font-size:32px}}
+@media(max-width:760px){
+ .login-story{padding:26px 28px 16px}.login-brand-row .brand{margin-bottom:0}.login-narrative{margin:25px 0 0;min-height:0}
+ .login-story .eyebrow{font-size:8px;line-height:1.7;letter-spacing:.6px;display:block;max-width:200px}.login-story h1{font-size:clamp(21px,4.8vw,30px);line-height:1.4;margin:12px 0 0}
+ .justice-scene{position:relative;width:230px;margin:-12px -15px -10px auto}.login-story .login-values{display:none}.login-form{margin:8px auto 20px;padding:24px}.login-lock{margin-bottom:22px}
+}
+@media(max-width:380px){.justice-scene{width:210px}.login-story{padding-left:22px;padding-right:22px}.login-story h1{font-size:23px}}
+@media(prefers-reduced-motion:reduce){
+ *,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+ .justice-impact{opacity:0}.motion-control{display:none}
+ .quick-grid>button:hover .quick-icon,.stat-card:hover .stat-icon,.sidebar nav a:hover>svg,.btn:hover>svg,.icon-action:hover>svg,.regulation-link:hover svg,.login-values span:hover svg{transform:none}
+}
