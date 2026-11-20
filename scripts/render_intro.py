@@ -56,38 +56,57 @@ def frame(t,fade=True):
   cover=Image.new('RGBA',image.size,NAVY+(round(255*ease((t-4.42)/.75)),));image.alpha_composite(cover)
  return image.convert('RGB')
 def sound():
- rate=48000;count=round(rate*DURATION);samples=[0.0]*count;rng=random.Random(9221)
- # Lower resonances, a firmer transient and a darker room tail.
- for hit,gain in [(1.38,.94),(1.93,1.0)]:
+ rate=48000;count=round(rate*DURATION);rng=random.Random(9222)
+ dry=[0.0]*count
+ # A short contact crack and fixed, rapidly decaying wood modes: no bass drop.
+ for hit,gain,tuning in [(1.38,.98,1.015),(1.93,1.0,1.0)]:
   start=round(hit*rate);low=0.0
-  for j in range(round(1.25*rate)):
+  modes=[(217,.48,31),(463,.31,39),(927,.19,54),(1843,.105,82),(2921,.045,110)]
+  for j in range(round(.42*rate)):
    k=start+j
    if k>=count:break
-   t=j/rate;noise=rng.uniform(-1,1);low=.68*low+.32*noise
-   attack=1-math.exp(-t*2100)
-   transient=.8*low*math.exp(-t*100)
-   pitch=58+48*math.exp(-t*29)
-   body=.52*math.sin(2*math.pi*pitch*t)*math.exp(-t*9)+.26*math.sin(2*math.pi*151*t)*math.exp(-t*17)
-   wood=.20*math.sin(2*math.pi*376*t)*math.exp(-t*26)+.07*math.sin(2*math.pi*1109*t)*math.exp(-t*51)
-   value=gain*attack*(transient+body+wood)
-   samples[k]+=value
-   for delay,amount in [(.043,.21),(.087,.14),(.141,.095),(.213,.055),(.307,.03)]:
-    dest=k+round(delay*rate)
-    if dest<count:samples[dest]+=value*amount
- # Restrained, low cinematic rise leading into the second knock.
- for k in range(round(.55*rate),round(2.25*rate)):
-  t=k/rate;envelope=math.sin(math.pi*clamp((t-.55)/1.7))**2
-  samples[k]+=.038*envelope*(math.sin(2*math.pi*43*t)+.5*math.sin(2*math.pi*65*t))
- for k in range(round(2.45*rate),count):
-  t=k/rate-2.45
-  samples[k]+=.023*(1-math.exp(-t*10))*math.exp(-t*2)*(math.sin(2*math.pi*130.81*t)+.45*math.sin(2*math.pi*196*t))
- peak=max(map(abs,samples));gain=.78/peak
- pcm=array.array('h',(round(v*gain*32767*(1-ease((i/rate-4.35)/.7))) for i,v in enumerate(samples)))
+   t=j/rate;noise=rng.uniform(-1,1);low=.55*low+.45*noise
+   contact=(.72*(noise-low)*math.exp(-t*240)+.3*low*math.exp(-t*77))
+   wood=sum(level*math.sin(2*math.pi*hz*tuning*t)*math.exp(-t*decay) for hz,level,decay in modes)
+   body=.09*math.sin(2*math.pi*118*t)*math.exp(-t*34)
+   dry[k]+=gain*(1-math.exp(-t*4500))*(contact+wood+body)
+ channels=[]
+ for side in range(2):
+  track=dry.copy()
+  # Asymmetric room reflections make the echo read as space, not a repeated hit.
+  for delay,amount in ([(.047,.19),(.137,.24),(.278,.115),(.438,.065)] if side==0 else [(.071,.18),(.183,.22),(.329,.12),(.493,.06)]):
+   offset=round(delay*rate);filtered=0.0
+   for k in range(count-offset):
+    filtered=.62*filtered+.38*dry[k]
+    track[k+offset]+=filtered*amount
+  # Parallel damped combs provide a diffuse room tail behind the distinct echoes.
+  for delay,feedback in ([(.031,.72),(.037,.74),(.041,.71),(.053,.73)] if side==0 else [(.033,.73),(.039,.71),(.047,.74),(.059,.72)]):
+   size=round(delay*rate);buffer=[0.0]*size;filtered=0.0;predelay=round(.035*rate)
+   for k in range(count):
+    index=k%size;old=buffer[index];filtered=.57*filtered+.43*old
+    buffer[index]=(dry[k-predelay] if k>=predelay else 0)+filtered*feedback
+    track[k]+=.065*old
+  channels.append(track)
+ peak=max(max(map(abs,c)) for c in channels);gain=.76/peak
+ pcm=array.array('h')
+ for i in range(count):
+  fade=1-ease((i/rate-4.3)/.75)
+  for side in range(2):pcm.append(round(channels[side][i]*gain*fade*32767))
  target=ROOT/'sipak-intro-white-sfx.wav'
- with wave.open(str(target),'wb') as wav:wav.setnchannels(1);wav.setsampwidth(2);wav.setframerate(rate);wav.writeframes(pcm.tobytes())
+ with wave.open(str(target),'wb') as wav:wav.setnchannels(2);wav.setsampwidth(2);wav.setframerate(rate);wav.writeframes(pcm.tobytes())
  return target
 if __name__=='__main__':
  audio=sound();output=ROOT/'sipak-intro-white-1080p.mp4'
+ if '--audio-only' in sys.argv:
+  import shutil
+  if not output.exists():raise SystemExit('Create the full video first.')
+  for target in [output,ROOT/'sipak-intro-white-web.mp4']:
+   temporary=target.with_name(target.stem+'-remux.mp4')
+   subprocess.run([FFMPEG,'-y','-i',str(target),'-i',str(audio),'-map','0:v:0','-map','1:a:0','-c:v','copy','-c:a','aac','-b:a','192k','-movflags','+faststart','-shortest',str(temporary)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+   temporary.replace(target)
+  shutil.copy2(ROOT/'sipak-intro-white-web.mp4',ROOT.parents[1]/'public'/'intro'/'sipak-intro.mp4')
+  print('Updated stereo wood impact, room reflections and echo. Video frames unchanged.',flush=True)
+  raise SystemExit(0)
  frame(1.38).save(ROOT/'impact.jpg',quality=94);frame(4,False).save(ROOT/'poster.jpg',quality=94)
  cmd=[FFMPEG,'-y','-f','rawvideo','-vcodec','rawvideo','-s',f'{W}x{H}','-pix_fmt','rgb24','-r',str(FPS),'-i','-','-i',str(audio),'-c:v','libx264','-preset','medium','-crf','18','-pix_fmt','yuv420p','-c:a','aac','-b:a','160k','-movflags','+faststart','-shortest',str(output)]
  with (ROOT/'encoding.log').open('w') as log:

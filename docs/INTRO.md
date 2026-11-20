@@ -2,7 +2,7 @@
 
 Intro menggunakan aset lokal `public/intro/sipak-intro.mp4` (720p, H.264/AAC, 5,2 detik) dan `poster.jpg`. Tidak ada layanan video eksternal atau pengiriman data pengguna. Versi ekspor 1080p tersedia di folder artifacts lokal, tidak ikut commit.
 
-Palu dan alas dibuat sebagai bentuk putih flat 2D di atas warna navy SIPAK. Tidak ada garis dekoratif di bawah judul. Dua ketukan memakai suara sintetis dengan resonansi rendah dan gema pendek, dengan puncak audio di bawah clipping. Akhir video memudar ke navy; overlay web memudar selama 800 ms sambil halaman aplikasi muncul.
+Palu dan alas dibuat sebagai bentuk putih flat 2D di atas warna navy SIPAK. Tidak ada garis dekoratif di bawah judul. Dua ketukan memakai suara kayu sintetis dengan transien tajam dan resonansi kayu pendek, diikuti echo serta pantulan ruangan stereo. Tidak memakai bass drop atau nada musik; puncak audio dijaga di bawah clipping. Akhir video memudar ke navy; overlay web memudar selama 800 ms sambil halaman aplikasi muncul.
 
 Video otomatis diputar saat halaman dimuat, tanpa tombol Mulai. Aplikasi mencoba autoplay bersuara; bila ditolak browser, video langsung dilanjutkan tanpa suara. Ikon speaker mengaktifkan atau membisukan suara lewat interaksi pengguna. Lewati membuka aplikasi. Perilaku fallback mengikuti [kebijakan Chrome](https://developer.chrome.com/blog/autoplay/).
 
@@ -19,3 +19,5 @@ npm.cmd run build
 ```
 
 Generator menghasilkan ekspor 1080p/720p, WAV, dan poster di `artifacts/sipak-intro-white`, lalu menyalin video web dan poster ke `public/intro`. Aset ini harus ikut commit ketika diperbarui. Folder artifacts dan tmp tetap diabaikan Git. Tidak mengubah .env atau konfigurasi AI.
+
+Pembaruan audio tanpa render ulang gambar: `python scripts/render_intro.py --audio-only` (memerlukan ekspor lokal sebelumnya).

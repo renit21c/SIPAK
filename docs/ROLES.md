@@ -28,3 +28,5 @@ Login hanya menampilkan identitas SIPAK, judul Komdis dan form masuk, tanpa ilus
 ## Intro web
 
 Intro terpisah memakai video lokal palu putih flat 2D, tanpa garis dekoratif, dan efek ketukan rendah. Video otomatis diputar pada pemuatan halaman tanpa tombol Mulai; bila suara otomatis diblokir browser, pemutaran dilanjutkan tanpa suara dan ikon speaker dapat mengaktifkannya. Lewati langsung membuka web. Menjelang akhir, overlay memudar selama 800 ms dan halaman aplikasi muncul. Refresh mengulang intro; navigasi internal tidak. Preferensi reduced motion langsung membuka web. Galat media dan timeout tidak menahan akses aplikasi. Aset public/intro ikut dalam build. Scrollbar memakai track terang dan thumb biru keabu-abuan, dengan warna navy khusus sidebar. Halaman login tetap tanpa scene justice.
+
+Login mobile memakai satu latar navy, tanpa panel putih. Logo dan judul berjarak tetap 25 px; tidak ada distribusi ruang vertikal yang memperbesar jarak pada layar tinggi. Isian memakai teks 16 px, target sentuh minimal 44–50 px, dan palet gelap termasuk autofill. Desktop mempertahankan tata letak dua panel.
