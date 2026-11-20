@@ -104,7 +104,7 @@ Alur utama bekerja sebagai aplikasi lokal. Yang memerlukan pekerjaan lanjutan se
 
 Filter Ringan/Sedang/Berat berlaku pada tab Pasal dan Pemetaan Sanksi. Tab Pasal menampilkan pasal perilaku dan dasar sanksi yang terkait melalui aturan versi regulasi aktif; teks pasal tetap utuh. Pada pemetaan, kategori dan rincian hanya berasal dari cabang aturan yang cocok dengan filter. Kelompok ketentuan dan pencarian tetap dapat dikombinasikan.
 
-Login desktop memakai kartu dua kolom; login mobile juga memakai dua kolom dengan panel identitas navy dan form putih, disesuaikan hingga lebar 320 piksel. Tidak menambahkan pendaftaran atau login sosial dari contoh referensi.
+Login desktop memakai kartu dua kolom; login mobile memakai dua bagian atas-bawah: logo pada panel navy di atas, form masuk di bawah. Teks Ruang kerja Komdis hanya tampil di desktop. Tidak menambahkan pendaftaran atau login sosial dari contoh referensi.
 
 ## Mobile dan PWA
 
@@ -115,3 +115,5 @@ Favicon SVG/ICO dan ikon Apple/PWA memakai mark dokumen-perisai SIPAK. Manifest 
 Hosting HTTPS atau localhost/127.0.0.1 diperlukan untuk pemasangan PWA; opsi pemasangan mengikuti browser perangkat. Lihat [syarat PWA MDN](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable). Tidak ada prompt pemasangan otomatis di UI.
 
 Verifikasi PWA: `node --test scripts/tests/pwa.test.mjs` memeriksa manifest, ukuran ikon, cache offline, dan pengecualian API/PDF. HTTP pratinjau produksi memeriksa manifest, favicon, seluruh ikon, sw.js dan offline.html beserta MIME type. Pemasangan pada perangkat fisik belum diuji.
+
+Tema mobile menggunakan latar biru lembut, topbar navy, kartu angka navy/biru/pink, dan panel identitas perkara navy. Sorotan rekomendasi menggunakan pink lembut/crimson; warna status tetap semantik. Tema ini hanya berlaku sampai 760 px. Desktop tetap mengikuti tampilan sebelumnya.
