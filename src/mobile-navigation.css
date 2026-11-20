@@ -1,0 +1,19 @@
+.mobile-bottom-nav{display:none}
+.mobile-nav-sheet{border:1px solid #dde3f1;border-radius:22px;background:#f8faff;color:#303e65;box-shadow:0 12px 45px #171d4d30;padding:19px;max-width:440px}
+.mobile-nav-sheet::backdrop{background:#141b4199}
+.mobile-nav-sheet header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.mobile-nav-sheet h2{font-size:19px;margin:0;color:#25285f}.mobile-nav-sheet header button{min-width:44px;min-height:44px;border-radius:12px;background:#e9edf8;color:#64749b}
+.mobile-nav-sheet nav{display:grid;gap:9px}.mobile-nav-sheet nav a{display:flex;align-items:center;gap:13px;min-height:62px;padding:11px 13px;background:#edf1fa;border:1px solid #dce3f1;border-radius:13px;color:#50638d}.mobile-nav-sheet nav a[aria-current="page"]{background:#e5eafa;border-color:#b9c7e8}.mobile-nav-sheet nav a strong{font-size:14px;font-weight:600;flex:1}.more-nav-icon{display:grid;place-items:center;min-width:37px;height:37px;border-radius:10px;background:#dfe6f7;color:#526894}
+@media(max-width:760px){
+ .app.role-komdis>.sidebar{display:none!important}
+ .app.role-komdis main{padding-bottom:calc(103px + env(safe-area-inset-bottom))}
+ .mobile-bottom-nav{position:fixed;display:grid;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));height:70px;background:#f9faff;border:1px solid #dce3f1;border-radius:24px;box-shadow:0 5px 28px #25285f22;z-index:35}
+ .mobile-bottom-nav>a,.mobile-bottom-nav>button{position:relative;min-width:0;min-height:64px;color:#8a95ae;text-align:center;text-decoration:none;border:0;background:transparent;padding:0;border-radius:18px}
+ .bottom-nav-icon{position:absolute;display:grid;place-items:center;bottom:22px;left:50%;transform:translateX(-50%);width:40px;height:40px;border-radius:50%;transition:background 180ms ease,color 180ms ease}
+ .bottom-nav-label{position:absolute;left:0;right:0;bottom:8px;font-size:10px;line-height:1.2;font-weight:500;white-space:nowrap;letter-spacing:-.15px}
+ .mobile-bottom-nav .active{color:#313d70}.mobile-bottom-nav .active .bottom-nav-icon{width:52px;height:52px;bottom:27px;background:#292e68;color:#fff;box-shadow:0 0 0 6px #e9edf7}.mobile-bottom-nav .active .bottom-nav-label{font-weight:700}
+ .mobile-bottom-nav :focus-visible{outline:2px solid #d94150;outline-offset:4px}
+ .mobile-nav-sheet{position:fixed;inset:auto 12px calc(94px + env(safe-area-inset-bottom));width:calc(100% - 24px);max-width:440px;max-height:calc(100svh - 125px);margin:0 auto;overflow-y:auto}
+ .role-komdis .toast{bottom:calc(96px + env(safe-area-inset-bottom));left:14px;right:14px;max-width:none;width:auto}
+}
+@media(max-width:360px){.bottom-nav-label{font-size:9px}.mobile-bottom-nav .active .bottom-nav-icon{width:48px;height:48px;bottom:29px}}
+@media(prefers-reduced-motion:reduce){.bottom-nav-icon{transition:none}}

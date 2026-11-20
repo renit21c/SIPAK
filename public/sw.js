@@ -1,4 +1,4 @@
-const CACHE='sipak-offline-v1';
+const CACHE='sipak-offline-v2';
 const OFFLINE='/offline.html';
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.add(OFFLINE)).then(()=>self.skipWaiting()));

@@ -31,4 +31,4 @@ Intro terpisah memakai video lokal palu putih flat 2D, tanpa garis dekoratif, da
 
 Login mobile memakai dua bagian atas-bawah: logo SIPAK pada panel navy di atas dan form masuk di bawah, tanpa teks Ruang kerja Komdis. Login memenuhi layar tanpa bingkai luar; desktop tetap dua kolom. Isian menggunakan teks 16 px dan tombol sentuh 44-50 px. Tema ruang kerja mobile menambahkan topbar/panel perkara navy, latar biru lembut dan kartu pink/biru; status tetap dibedakan dengan warna semantik. Tabel tetap berupa kartu vertikal berlabel, tanpa perlu geser horizontal.
 
-Navbar mobile memakai sudut 20 px; sidebar drawer membulat 28 px pada sisi kanan, dengan tautan menu 12 px.
+Navbar mobile memakai sudut 20 px. Navigasi bawah membulat menggantikan sidebar/burger pada lebar sampai 760 px, dengan ikon aktif terangkat. Ringkasan, Perkara, Unggah dan Rekomendasi langsung tersedia; panel Lainnya memuat Arsip BAP, Regulasi dan Pengaturan sesuai izin pengguna. Panel memakai dialog native agar fokus tetap di dalam menu, mendukung Escape, dan menutup saat beralih ke desktop. Judul browser dan nama PWA hanya SIPAK.

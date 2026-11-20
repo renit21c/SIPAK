@@ -118,4 +118,6 @@ Verifikasi PWA: `node --test scripts/tests/pwa.test.mjs` memeriksa manifest, uku
 
 Tema mobile menggunakan latar biru lembut, topbar navy, kartu angka navy/biru/pink, dan panel identitas perkara navy. Sorotan rekomendasi menggunakan pink lembut/crimson; warna status tetap semantik. Tema ini hanya berlaku sampai 760 px. Desktop tetap mengikuti tampilan sebelumnya.
 
-Login tidak memakai bingkai atau margin luar pada desktop/mobile. Navbar mobile mengambang dengan radius 20 px; panel sidebar mobile memakai radius kanan 28 px. Form tetap dapat digulir vertikal pada viewport pendek, tanpa memotong kontrol.
+Login tidak memakai bingkai atau margin luar pada desktop/mobile. Navbar mobile mengambang dengan radius 20 px. Form tetap dapat digulir vertikal pada viewport pendek, tanpa memotong kontrol.
+
+Judul tab browser dan nama PWA adalah SIPAK. Pada mobile, sidebar dan tombol burger diganti navigasi bawah membulat: Ringkasan, Perkara, Unggah, Rekomendasi, dan Lainnya. Menu aktif memakai ikon lingkaran terangkat; Arsip BAP, Regulasi, dan Pengaturan tersedia melalui panel Lainnya sesuai izin pengguna. Konten dan notifikasi diberi ruang agar tidak tertutup navigasi atau area aman perangkat. Desktop tetap memakai sidebar.

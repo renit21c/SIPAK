@@ -7,7 +7,7 @@ import vm from 'node:vm';
 const publicUrl=new URL('../../public/',import.meta.url);
 function worker(){
  const events={},added=[],deleted=[];
- const context={URL,Response,fetch:async()=>{throw new TypeError('offline')},caches:{open:async()=>({add:async path=>{added.push(path)}}),keys:async()=>['sipak-offline-v0','sipak-offline-v1','another-app-cache'],delete:async key=>{deleted.push(key)},match:async path=>path==='/offline.html'?new Response('SIPAK offline page'):undefined},self:{location:{origin:'https://sipak.test'},addEventListener:(name,callback)=>{events[name]=callback},skipWaiting:async()=>{},clients:{claim:async()=>{}}}};
+ const context={URL,Response,fetch:async()=>{throw new TypeError('offline')},caches:{open:async()=>({add:async path=>{added.push(path)}}),keys:async()=>['sipak-offline-v1','sipak-offline-v2','another-app-cache'],delete:async key=>{deleted.push(key)},match:async path=>path==='/offline.html'?new Response('SIPAK offline page'):undefined},self:{location:{origin:'https://sipak.test'},addEventListener:(name,callback)=>{events[name]=callback},skipWaiting:async()=>{},clients:{claim:async()=>{}}}};
  vm.runInNewContext(readFileSync(new URL('sw.js',publicUrl),'utf8'),context);
  return {events,added,deleted};
 }
@@ -17,7 +17,7 @@ test('manifest is linked and icon dimensions match their declarations',()=>{
  const html=readFileSync(new URL('../../index.html',import.meta.url),'utf8');
  assert.match(html,/rel="manifest" href="\/manifest.webmanifest"/);
  assert.equal(manifest.display,'standalone');assert.equal(manifest.scope,'/');
- assert.equal(manifest.start_url,'/');assert.ok(manifest.name&&manifest.short_name);
+ assert.equal(manifest.start_url,'/');assert.equal(manifest.name,'SIPAK');assert.equal(manifest.short_name,'SIPAK');assert.match(html,/<title>SIPAK<\/title>/);
  for(const icon of manifest.icons){
   const path=new URL(icon.src.slice(1),publicUrl);assert.ok(existsSync(fileURLToPath(path)));
   const png=readFileSync(path);assert.equal(png.toString('ascii',1,4),'PNG');
@@ -32,7 +32,7 @@ test('worker only precaches the public offline page and cleans its own old cache
  events.install({waitUntil:promise=>{pending=promise}});await pending;
  assert.deepEqual(added,['/offline.html']);
  events.activate({waitUntil:promise=>{pending=promise}});await pending;
- assert.deepEqual(deleted,['sipak-offline-v0']);
+ assert.deepEqual(deleted,['sipak-offline-v1']);
 });
 
 test('API, BAP, recommendation PDFs, writes and external resources bypass the worker',()=>{
