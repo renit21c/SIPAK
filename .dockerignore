@@ -12,3 +12,8 @@ tmp
 **/__pycache__
 artifacts
 output
+android
+*.apk
+*.aab
+*.p12
+*.jks
