@@ -90,6 +90,8 @@ class UserCreate(Login):
     name: str = Field(min_length=2,max_length=200)
     role: Literal['komdis'] = 'komdis'
 
+LOGO_DATA_URL_MAX_LENGTH = 500000
+
 class Letterhead(Strict):
     parent_name: str = Field(default='',max_length=180)
     institution_name: str = Field(default='',max_length=180)
@@ -98,8 +100,8 @@ class Letterhead(Strict):
     contact: str = Field(default='',max_length=250)
     place: str = Field(default='',max_length=100)
     recipient: str = Field(default='',max_length=200)
-    logo_left: str = Field(default='',max_length=500000)
-    logo_right: str = Field(default='',max_length=500000)
+    logo_left: str = Field(default='',max_length=LOGO_DATA_URL_MAX_LENGTH)
+    logo_right: str = Field(default='',max_length=LOGO_DATA_URL_MAX_LENGTH)
 
 class LetterDetails(Strict):
     number: str = Field(default='',max_length=150)
