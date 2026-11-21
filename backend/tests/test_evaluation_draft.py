@@ -11,7 +11,7 @@ from backend.tests.test_sipak import verify
 from backend.tests.test_recommendation import evaluation
 
 def draft_text(ids=None,source=None):
-    return EvaluationDraftText(summary='BAP halaman 1 mencatat pemeriksaan Budi Uji sebagai saksi.',recommendation='Usulkan pendalaman fakta sebelum penetapan tindak lanjut oleh Komdis.',basis='Keterangan sumber masih perlu ditelaah; pasal terpilih adalah referensi pendalaman.',article_ids=ids or [],sources=[source or {'page':1,'quote':'Nomor BAP: TEST-01'}])
+    return EvaluationDraftText(summary='BAP halaman 1 mencatat pemeriksaan Budi Uji sebagai saksi.',recommendation='Meminta pendalaman fakta sebelum menentukan tindak lanjut.',basis='Keterangan sumber masih perlu dilengkapi; pasal terpilih adalah referensi pendalaman.',article_ids=ids or [],sources=[source or {'page':1,'quote':'Nomor BAP: TEST-01'}])
 
 def request(case,**changes):
     return {'expected_revision':case['revision'],'expected_assessment_id':case['latest_assessment_id'],**changes}
@@ -83,6 +83,9 @@ def test_cloud_draft_uses_its_own_strict_schema_without_real_inference(case,clie
     result=asyncio.run(service.generate_draft(c,options,InferenceConfig('openrouter','nvidia/nemotron-3.5-super-vl',SecretStr('synthetic'),external_authorized=True)))
     assert result['summary'] and len(bodies)==1
     payload=bodies[0];schema=payload['response_format']['json_schema']
+    assert 'dari sudut pandang kelembagaan Komisi Disiplin' in payload['messages'][0]['content']
+    assert 'Komdis bukan penerima pelimpahan' in payload['messages'][0]['content']
+    assert 'telaah Komdis' not in result['sanction']
     assert schema['strict'] and schema['name']=='komdis_evaluation_draft'
     assert 'article_ids' in schema['schema']['required'] and 'sources' in schema['schema']['required']
     assert payload['reasoning']=={'enabled':False} and payload['provider']['zdr']
