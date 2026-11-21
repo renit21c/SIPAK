@@ -121,12 +121,17 @@ class EvaluationDraftRequest(InferenceConsent):
     expected_revision: int
     expected_assessment_id: str | None = None
 
-class EvaluationDraftText(Strict):
+class EvaluationDraftContent(Strict):
     summary: str = Field(min_length=10,max_length=6000)
     recommendation: str = Field(min_length=10,max_length=6000)
     basis: str = Field(min_length=10,max_length=6000)
     article_ids: list[str] = Field(max_length=8)
+
+class EvaluationDraftText(EvaluationDraftContent):
     sources: list[Citation] = Field(min_length=1,max_length=12)
+
+class EvaluationDraftReferences(EvaluationDraftContent):
+    source_ids: list[str] = Field(min_length=1,max_length=12)
 
 class Evaluation(Strict):
     outcome: Literal['proceed','revise']

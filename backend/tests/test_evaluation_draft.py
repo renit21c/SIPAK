@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import select
 from backend.app.database import SessionLocal
 from backend.app.models import Case,Record
-from backend.app.schemas import EvaluationDraftText
+from backend.app.schemas import EvaluationDraftText,EvaluationDraftReferences
 from backend.app.services import evaluation_draft as service
 from backend.app.services.ai_provider import InferenceConfig
 from backend.tests.test_sipak import verify
@@ -12,6 +12,10 @@ from backend.tests.test_recommendation import evaluation
 
 def draft_text(ids=None,source=None):
     return EvaluationDraftText(summary='BAP halaman 1 mencatat pemeriksaan Budi Uji sebagai saksi.',recommendation='Meminta pendalaman fakta sebelum menentukan tindak lanjut.',basis='Keterangan sumber masih perlu dilengkapi; pasal terpilih adalah referensi pendalaman.',article_ids=ids or [],sources=[source or {'page':1,'quote':'Nomor BAP: TEST-01'}])
+
+def model_draft(ids=None,source_ids=None):
+    content=draft_text(ids).model_dump(exclude={'sources'})
+    return EvaluationDraftReferences(**content,source_ids=['S001'] if source_ids is None else source_ids)
 
 def request(case,**changes):
     return {'expected_revision':case['revision'],'expected_assessment_id':case['latest_assessment_id'],**changes}
@@ -57,14 +61,14 @@ def test_draft_requires_consent_for_current_cloud_model(case,client,monkeypatch)
 def test_ai_cannot_invent_articles_or_sources(case,client,monkeypatch,bad):
     c=verify(client,case);options=client.get('/api/evaluation/articles').json();key=options[0]['id']
     async def fake(*args):
-        return draft_text(['invented-id'] if bad=='foreign-id' else [key,key] if bad=='duplicate' else [],{'page':99,'quote':'Kutipan palsu'} if bad=='bad-source' else {'page':1,'quote':'   '} if bad=='empty-source' else None)
+        return model_draft(['invented-id'] if bad=='foreign-id' else [key,key] if bad=='duplicate' else [],['S999'] if bad=='bad-source' else ['   '] if bad=='empty-source' else None)
     monkeypatch.setattr(service,'infer_openrouter',fake)
     import asyncio
     with pytest.raises(ValueError):asyncio.run(service.generate_draft(c,options,InferenceConfig('openrouter','test/model',SecretStr('synthetic'),external_authorized=True)))
 
 def test_unsupported_category_stays_undetermined(case,client,monkeypatch):
     c=verify(client,case);options=client.get('/api/evaluation/articles').json()
-    async def fake(context,*args):return draft_text([context['pasal_tersedia'][0]['id']])
+    async def fake(context,*args):return model_draft([context['pasal_tersedia'][0]['id']])
     monkeypatch.setattr(service,'infer_openrouter',fake)
     import asyncio
     result=asyncio.run(service.generate_draft(c,options,InferenceConfig('openrouter','test/model',SecretStr('synthetic'),external_authorized=True)))
@@ -78,7 +82,7 @@ def test_cloud_draft_uses_its_own_strict_schema_without_real_inference(case,clie
     c=verify(client,case);options=client.get('/api/evaluation/articles').json();bodies=[]
     def handler(request):
         body=json.loads(request.content);bodies.append(body)
-        return httpx.Response(200,json={'choices':[{'finish_reason':'stop','message':{'content':draft_text().model_dump_json()}}]})
+        return httpx.Response(200,json={'choices':[{'finish_reason':'stop','message':{'content':model_draft().model_dump_json()}}]})
     mock_http(monkeypatch,handler)
     result=asyncio.run(service.generate_draft(c,options,InferenceConfig('openrouter','nvidia/nemotron-3.5-super-vl',SecretStr('synthetic'),external_authorized=True)))
     assert result['summary'] and len(bodies)==1
@@ -87,13 +91,13 @@ def test_cloud_draft_uses_its_own_strict_schema_without_real_inference(case,clie
     assert 'Komdis bukan penerima pelimpahan' in payload['messages'][0]['content']
     assert 'telaah Komdis' not in result['sanction']
     assert schema['strict'] and schema['name']=='komdis_evaluation_draft'
-    assert 'article_ids' in schema['schema']['required'] and 'sources' in schema['schema']['required']
+    assert 'article_ids' in schema['schema']['required'] and 'source_ids' in schema['schema']['required']
     assert payload['reasoning']=={'enabled':False} and payload['provider']['zdr']
 
 def test_category_and_sanction_require_complete_selected_match(case,client,monkeypatch):
     import asyncio
     c=verify(client,case);options=client.get('/api/evaluation/articles').json();chosen=options[0]
-    async def fake(*args):return draft_text([chosen['id']])
+    async def fake(*args):return model_draft([chosen['id']])
     monkeypatch.setattr(service,'infer_openrouter',fake)
     base={'regulation_id':chosen['regulation_id'],'article':chosen['number'],'category':'Ringan','sanction':'Usulan pembinaan sintetis','missing':[]}
     c['analysis']=[base]
