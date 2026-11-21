@@ -10,3 +10,4 @@ PyMuPDF>=1.25,<2
 httpx>=0.28,<1
 reportlab>=4.2,<5
 pytest>=8,<10
+fastocr-sdk==0.4.0

@@ -102,3 +102,16 @@ Dengan GitHub source terhubung dan auto-deploy aktif, push ke branch main akan m
 - **Pemrosesan terhenti saat redeploy**: startup menandai pekerjaan yang terputus sebagai gagal agar bisa dicoba ulang; queue durable belum tersedia.
 
 Validasi lokal: build frontend dan tes konfigurasi/backend. Build Docker penuh memerlukan Docker Desktop/Linux engine aktif; bila engine tidak tersedia, hasil build image harus diperiksa pada deployment Railway.
+
+
+## OCR PDF scan (FastOCR)
+
+Tambahkan Variables pada service SIPAK:
+
+- `OCR_PROVIDER=fastocr`
+- `FASTOCR_API_KEY`: API key dari akun FastOCR milik pengelola.
+- `OCR_TIMEOUT_SECONDS=300` (opsional).
+
+Deploy kembali setelah perubahan. Pengaturan menampilkan status OCR. Untuk menonaktifkan pengiriman scan, gunakan `OCR_PROVIDER=disabled`. PDF berteks tetap berjalan tanpa FastOCR. Persetujuan OpenRouter dan pengiriman halaman scan ke FastOCR ditampilkan pada konfirmasi unggah/proses ulang; OCR tidak dipanggil pada pembuatan draf evaluasi karena teks halaman sudah tersimpan. Rekam audit membedakan persetujuan OCR dan persetujuan model AI.
+
+FastOCR memproses halaman di layanan eksternalnya, mengikuti saldo, harga, dan ketentuan akun FastOCR. SIPAK tidak menaruh key ini di frontend/APK dan tidak mengirim ulang halaman digital yang sudah terbaca. Periksa kebijakan penyimpanan/retensi FastOCR sesuai penggunaan institusi. PDF asli tetap menjadi sumber pratinjau; kutipan OCR menggunakan nomor halaman PDF asli dan tetap memerlukan verifikasi pengguna.

@@ -10,6 +10,8 @@ os.environ['BOOTSTRAP_PASSWORD']='Test-only-password-2026!'
 os.environ['AI_PROVIDER']='ollama'
 os.environ['AI_MODEL']=''
 os.environ['OPENROUTER_API_KEY']=''
+os.environ['FASTOCR_API_KEY']=''
+os.environ['OCR_PROVIDER']='disabled'
 
 import pytest
 from fastapi.testclient import TestClient
@@ -22,7 +24,7 @@ def isolated_ai_configuration(monkeypatch,tmp_path):
     from backend.app.config import settings
     import backend.app.services.ai_provider as provider
     monkeypatch.setattr(provider,'CONFIG_ENV_PATH',tmp_path/'.env')
-    for field,value in {'ai_provider':'ollama','ai_model':'','openrouter_api_key':SecretStr(''),'ollama_model':'qwen2.5:3b-instruct-q4_K_M'}.items():
+    for field,value in {'ai_provider':'ollama','ai_model':'','openrouter_api_key':SecretStr(''),'ollama_model':'qwen2.5:3b-instruct-q4_K_M','ocr_provider':'disabled','fastocr_api_key':SecretStr('')}.items():
         monkeypatch.setattr(settings,field,value)
     for name,value in {'AI_PROVIDER':'ollama','AI_MODEL':'','OPENROUTER_API_KEY':'','OLLAMA_MODEL':'qwen2.5:3b-instruct-q4_K_M'}.items():
         monkeypatch.setenv(name,value)

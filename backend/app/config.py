@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     ai_model: str = ''
     openrouter_api_key: SecretStr = SecretStr('')
     ai_timeout_seconds: int = 180
+    ocr_provider: Literal['disabled','fastocr'] = 'fastocr'
+    fastocr_api_key: SecretStr = SecretStr('')
+    ocr_timeout_seconds: int = 300
     max_upload_mb: int = 20
     session_hours: int = 8
     cookie_secure: bool = False

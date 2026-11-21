@@ -6,6 +6,7 @@ charset-normalizer==3.5.2
 click==8.5.1
 colorama==0.4.6
 fastapi==0.165.0
+fastocr-sdk==0.4.0
 h11==0.16.0
 httpcore==1.0.9
 httpx==0.28.1

@@ -31,3 +31,5 @@
  .role-komdis .topbar{margin:10px 10px 0;height:64px;padding:0 14px}
 .role-komdis .table-scroll tbody tr{background:#fff;border-color:#d7dfef;border-top:3px solid #7f8bb6;box-shadow:0 4px 12px #25285f06}.role-komdis .table-scroll tbody td:first-child{padding:12px;margin:0 0 7px;background:#edf1fb;border:0;border-radius:6px;width:auto}.role-komdis .table-scroll tbody td:first-child:before{color:#6a7b9e}
 }
+
+.ocr-status{display:flex;align-items:center;gap:9px;margin-top:20px;padding-top:16px;border-top:1px solid #dbe2f0;color:#53698f;font-size:14px}.ocr-status .badge{margin-left:auto}

@@ -4,12 +4,13 @@ from ..database import SessionLocal
 from ..models import Document, DocumentPage, Case, User
 from ..security import audit
 from ..config import settings
-from .documents import extract_pages, chunks
+from .documents import chunks
 from .extraction import infer, validate_sources, aggregate
 from .cases import save_extraction
 from .ai_provider import snapshot
+from .ocr import extract_pages as extract_with_ocr
 
-async def process_document(document_id,config=None):
+async def process_document(document_id,config=None,ocr_config=None):
     config=config or snapshot()
     started = time.monotonic()
     with SessionLocal() as db:
@@ -17,7 +18,8 @@ async def process_document(document_id,config=None):
         user = db.get(User,doc.uploaded_by)
         try:
             doc.status='Sedang Diproses'; doc.stage=2; doc.error=None; db.commit()
-            pages=extract_pages(doc.path)
+            pages,ocr_used=await extract_with_ocr(doc.path,config=ocr_config,document_id=doc.id)
+            if ocr_used:audit(db,user,'ocr_completed',doc.id,{'provider':'fastocr','page_count':len(pages)})
             existing=db.scalars(select(DocumentPage).where(DocumentPage.document_id==doc.id)).all()
             for p in existing: db.delete(p)
             for page in pages: db.add(DocumentPage(document_id=doc.id,number=page['page'],text=page['text']))

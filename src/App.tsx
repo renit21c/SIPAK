@@ -36,7 +36,7 @@ export default function App(){
    </div><footer className="app-footer"><span>SIPAK · {new Date().getFullYear()}</span><button title="Panduan penggunaan" aria-label="Panduan penggunaan" onClick={()=>setHelp(true)}><HelpCircle size={18}/></button></footer></main></div>
    <MobileNavigation user={user} active={active}/>
    {toast&&<div role="status" className="toast"><CheckCircle2 size={18}/>{toast}<button onClick={()=>setToast('')} aria-label="Tutup notifikasi">×</button></div>}
-   {help&&<Modal title="Panduan penggunaan SIPAK" close={()=>setHelp(false)}><div className="modal-body prose"><ul>{roleHelp(user).map(step=><li key={step}>{step}</li>)}</ul>{user.permissions.includes('upload')&&<div className="alert">Gunakan PDF berteks. PDF pindai belum didukung.</div>}</div></Modal>}
+   {help&&<Modal title="Panduan penggunaan SIPAK" close={()=>setHelp(false)}><div className="modal-body prose"><ul>{roleHelp(user).map(step=><li key={step}>{step}</li>)}</ul>{user.permissions.includes('upload')&&<div className="alert">PDF scan memerlukan FastOCR yang sudah diatur pada server.</div>}</div></Modal>}
  </div>
 }
 

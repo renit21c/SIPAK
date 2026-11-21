@@ -24,6 +24,7 @@ from .services.ai_provider import snapshot,public_config,save_configuration,ensu
 from .services.letterhead import read_letterhead,save_letterhead
 from .services.evaluation_draft import article_options,resolve_articles,generate_draft
 import httpx
+from .services.ocr import snapshot as ocr_snapshot, public_config as ocr_public_config, FASTOCR_URL
 
 @asynccontextmanager
 async def lifespan(app):
@@ -127,7 +128,7 @@ async def system_settings(user:User=Depends(current_user)):
                 r=await client.get(local_ollama_url()+'/api/tags'); r.raise_for_status()
                 models=[m['name'] for m in r.json().get('models',[])]; connected=True
         except Exception: pass
-    return {**config,'ollama_url':settings.ollama_url,'ollama_connected':connected,'ai_connected':connected,'available_models':models,'model_available':config['model'] in models,'max_upload_mb':settings.max_upload_mb,'database':'PostgreSQL' if settings.database_url.startswith('postgresql') else 'SQLite (pengembangan lokal)','bootstrap_required':not bool(settings.bootstrap_email),'workflow':WORKFLOW,'regulatory_source':'https://peraturan.go.id/id/permendagri-no-8-tahun-2026'}
+    return {**config,**ocr_public_config(),'ollama_url':settings.ollama_url,'ollama_connected':connected,'ai_connected':connected,'available_models':models,'model_available':config['model'] in models,'max_upload_mb':settings.max_upload_mb,'database':'PostgreSQL' if settings.database_url.startswith('postgresql') else 'SQLite (pengembangan lokal)','bootstrap_required':not bool(settings.bootstrap_email),'workflow':WORKFLOW,'regulatory_source':'https://peraturan.go.id/id/permendagri-no-8-tahun-2026'}
 
 @app.put('/api/settings/ai')
 def update_ai(data:AIConfigUpdate,user:User=Depends(require('users')),db:DBSession=Depends(get_db)):
@@ -167,6 +168,16 @@ def authorized_inference(data:InferenceConsent):
     except ValueError as exc: raise HTTPException(409,str(exc))
     return config
 
+def authorized_ocr(data:InferenceConsent):
+    config=ocr_snapshot(authorized=data.ocr_consent)
+    if (data.expected_ocr_provider and data.expected_ocr_provider!=config.provider) or (data.ocr_consent and config.provider!='fastocr'):
+        raise HTTPException(409,'Konfigurasi OCR berubah. Muat ulang pengaturan dan konfirmasi penerima dokumen.')
+    return config
+
+def audit_ocr_consent(db,user,document_id,config):
+    if config.authorized:
+        audit(db,user,'external_ocr_authorized',document_id,{'provider':'fastocr','destination':FASTOCR_URL,'data_scope':'Halaman PDF yang memerlukan OCR; identitas, keterangan dan gambar halaman','authorized':True})
+
 def audit_inference_consent(db,user,document_id,config):
     audit(db,user,'external_ai_authorized' if config.external else 'local_ai_selected',document_id,{'provider':config.provider,'model':config.model,'destination':OPENROUTER_URL if config.external else settings.ollama_url,'data_scope':'Teks BAP per halaman; identitas, keterangan, bukti dan kronologi','authorized':config.external_authorized})
 
@@ -176,24 +187,25 @@ def documents(user:User=Depends(require('read')),db:DBSession=Depends(get_db)):
     return [dict(document_dict(d),case_id=cases[d.id].id if d.id in cases else None,verified=cases[d.id].verified if d.id in cases else False,uploader=db.get(User,d.uploaded_by).name) for d in db.scalars(select(Document).where(Document.deleted==False).order_by(Document.created_at.desc()))]
 
 @app.post('/api/documents',status_code=201)
-async def upload(background:BackgroundTasks,file:UploadFile=File(...),cloud_consent:bool=Form(False),expected_provider:str=Form(''),expected_model:str=Form(''),user:User=Depends(require('upload')),db:DBSession=Depends(get_db)):
-    config=authorized_inference(InferenceConsent(cloud_consent=cloud_consent,expected_provider=expected_provider,expected_model=expected_model))
+async def upload(background:BackgroundTasks,file:UploadFile=File(...),cloud_consent:bool=Form(False),expected_provider:str=Form(''),expected_model:str=Form(''),ocr_consent:bool=Form(False),expected_ocr_provider:str=Form(''),user:User=Depends(require('upload')),db:DBSession=Depends(get_db)):
+    consent=InferenceConsent(cloud_consent=cloud_consent,expected_provider=expected_provider,expected_model=expected_model,ocr_consent=ocr_consent,expected_ocr_provider=expected_ocr_provider)
+    config=authorized_inference(consent);ocr_config=authorized_ocr(consent)
     document_id=uid(); path=settings.storage_path/f'{document_id}.pdf'
     size,pages=await store_pdf(file,path)
     doc=Document(id=document_id,name=Path(file.filename.replace('\\','/')).name[:255],path=str(path),size=size,page_count=pages,uploaded_by=user.id)
     db.add(doc); audit(db,user,'document_uploaded',document_id,{'name':doc.name,'size':size})
-    audit_inference_consent(db,user,document_id,config);db.commit()
-    background.add_task(process_document,document_id,config)
+    audit_inference_consent(db,user,document_id,config);audit_ocr_consent(db,user,document_id,ocr_config);db.commit()
+    background.add_task(process_document,document_id,config,ocr_config)
     return document_dict(doc)
 
 @app.post('/api/documents/{document_id}/retry')
 def retry(document_id:str,background:BackgroundTasks,data:InferenceConsent=InferenceConsent(),user:User=Depends(require('upload')),db:DBSession=Depends(get_db)):
     doc=get_document(db,document_id)
     if doc.status!='Gagal': raise HTTPException(409,'Hanya dokumen gagal yang dapat diproses ulang.')
-    config=authorized_inference(data)
+    config=authorized_inference(data);ocr_config=authorized_ocr(data)
     doc.status='Menunggu'; doc.stage=1; doc.error=None
-    audit(db,user,'extraction_retried',doc.id);audit_inference_consent(db,user,doc.id,config)
-    db.commit(); background.add_task(process_document,doc.id,config)
+    audit(db,user,'extraction_retried',doc.id);audit_inference_consent(db,user,doc.id,config);audit_ocr_consent(db,user,doc.id,ocr_config)
+    db.commit(); background.add_task(process_document,doc.id,config,ocr_config)
     return document_dict(doc)
 
 @app.get('/api/documents/{document_id}/pdf')

@@ -13,3 +13,9 @@ tmp/
 artifacts/
 *.tsbuildinfo
 *.pyc
+android/.gradle/
+android/local.properties
+android/signing/
+android/**/build/
+*.apk
+*.aab

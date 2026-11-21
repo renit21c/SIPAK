@@ -65,12 +65,12 @@ def test_inference_failure_is_not_success(client,pdf_bytes,monkeypatch):
     assert client.delete('/api/documents/'+doc['id']).status_code==200
     assert client.get('/api/documents/'+doc['id']+'/pdf').status_code==404
 
-def test_scanned_pdf_rejected(client,monkeypatch):
+def test_blank_pdf_rejected(client,monkeypatch):
     doc=fitz.open();doc.new_page();binary=doc.tobytes();doc.close()
     response=client.post('/api/documents',files={'file':('scan.pdf',binary,'application/pdf')})
     assert response.status_code==201
     data=client.get('/api/documents').json()[0]
-    assert data['status']=='Gagal' and 'OCR' in data['error']
+    assert data['status']=='Gagal' and 'Teks tidak ditemukan' in data['error']
 
 def verify(client,case):
     r=client.put('/api/cases/'+case['id']+'/review',json={'extraction':case['extraction'],'note':'Sumber diperiksa dalam pengujian.','approve':True,'expected_revision':case['revision']})

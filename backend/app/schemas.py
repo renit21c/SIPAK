@@ -85,6 +85,8 @@ class InferenceConsent(Strict):
     cloud_consent: bool = False
     expected_provider: str = ''
     expected_model: str = ''
+    ocr_consent: bool = False
+    expected_ocr_provider: str = ''
 
 class UserCreate(Login):
     name: str = Field(min_length=2,max_length=200)
