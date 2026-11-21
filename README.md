@@ -121,3 +121,5 @@ Desktop dan mobile memakai tema bersama: latar biru lembut, topbar navy membulat
 Login tidak memakai bingkai atau margin luar pada desktop/mobile. Navbar mobile mengambang dengan radius 20 px. Form tetap dapat digulir vertikal pada viewport pendek, tanpa memotong kontrol.
 
 Judul tab browser dan nama PWA adalah SIPAK. Pada mobile, sidebar dan tombol burger diganti navigasi bawah membulat: Ringkasan, Perkara, Unggah, Rekomendasi, dan Lainnya. Menu aktif memakai ikon lingkaran terangkat; Arsip BAP, Regulasi, dan Pengaturan tersedia melalui panel Lainnya sesuai izin pengguna. Konten dan notifikasi diberi ruang agar tidak tertutup navigasi atau area aman perangkat. Desktop tetap memakai sidebar.
+
+Pilihan filter, pasal, kategori, peran dan provider memakai dropdown SIPAK dengan panel navy/biru lembut, pencarian melalui keyboard, serta penanda pilihan aktif. Model AI tetap dapat diketik bebas dengan saran model dalam panel yang sama. Pemilih tanggal surat memakai kalender SIPAK; checkbox/radio mengikuti palet aplikasi. Sidebar desktop memiliki transisi lebar 320 ms, label memudar, dan ikon collapse berputar; preferensi reduced motion tetap dihormati.

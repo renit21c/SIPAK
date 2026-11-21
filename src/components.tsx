@@ -1,12 +1,13 @@
+import {Dropdown,FieldLabelContext} from './Dropdown';
 import {useState,useId, type ReactNode} from 'react';
-import {Search, ChevronLeft, ChevronRight, X, FileText, ShieldCheck, Inbox, LoaderCircle, ChevronDown, CheckCircle2, CircleAlert, Clock3} from 'lucide-react';
+import {Search, ChevronLeft, ChevronRight, X, FileText, ShieldCheck, Inbox, LoaderCircle, CheckCircle2, CircleAlert, Clock3} from 'lucide-react';
 export function Logo({compact=false}:{compact?:boolean}) { return <div className="brand"><span className="logo-symbol"><FileText size={26}/><ShieldCheck className="logo-shield" size={17}/></span>{!compact&&<div><strong>SIPAK</strong></div>}</div> }
 export function Badge({children}:{children:ReactNode}){const v=String(children);const success=/Berhasil|Terverifikasi|Selesai|Diterbitkan|Rekomendasi Siap|Siap diunduh/.test(v),danger=/Gagal|Berat/.test(v),pending=/Menunggu|Pemeriksaan|Diproses|Sedang|Perlu/.test(v);const Icon=success?CheckCircle2:danger?CircleAlert:pending?Clock3:null;return <span className={'badge '+(success?'green':danger?'red':pending?'amber':'indigo')}>{Icon&&<Icon size={13} aria-hidden="true"/>}{children}</span>}
 export function Empty({title='Belum ada data',description='',action}:{title?:string;description?:string;action?:ReactNode}){return <div className="empty"><span><Inbox size={30}/></span><h3>{title}</h3>{description&&<p>{description}</p>}{action}</div>}
 export function Loading(){return <div className="empty"><LoaderCircle className="spin"/><p>Memuat…</p></div>}
 export function Modal({title,children,close,wide=false}:{title:string;children:ReactNode;close:()=>void;wide?:boolean}){return <div className="modal-backdrop" onClick={close}><section role="dialog" aria-modal="true" aria-label={title} className={'modal '+(wide?'wide':'')} onClick={e=>e.stopPropagation()}><header><h2>{title}</h2><button className="icon-btn" aria-label="Tutup" onClick={close}><X size={20}/></button></header>{children}</section></div>}
-export function Field({label,children}:{label:string;children:ReactNode}) {return <label className="field"><span>{label}</span>{children}</label>}
-export function Select({value,onChange,children,label}:{value:string;onChange:(v:string)=>void;children:ReactNode;label:string}) {return <div className="select-wrap"><select aria-label={label} value={value} onChange={e=>onChange(e.target.value)}>{children}</select><ChevronDown size={15}/></div>}
+export function Field({label,children}:{label:string;children:ReactNode}) {return <FieldLabelContext.Provider value={label}><label className="field"><span>{label}</span>{children}</label></FieldLabelContext.Provider>}
+export function Select({value,onChange,children,label}:{value:string;onChange:(v:string)=>void;children:ReactNode;label:string}) {return <div className="select-wrap"><Dropdown label={label} value={value} onChange={onChange}>{children}</Dropdown></div>}
 export function Table<T>({items,columns,searchText,status,emptyTitle='Belum ada data',initialSize=5}:{items:T[];columns:{title:string;render:(r:T)=>ReactNode}[];searchText:(r:T)=>string;status?:(r:T)=>string;emptyTitle?:string;initialSize?:number}){
  const tableId=useId();
  const [q,setQ]=useState(''),[filter,setFilter]=useState(''),[page,setPage]=useState(1),[descending,setDescending]=useState(true);

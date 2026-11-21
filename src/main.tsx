@@ -12,6 +12,7 @@ import './evaluation.css';
 import './ui-focus.css';
 import './responsive.css';
 import './workspace-theme.css';
+import './controls.css';
 createRoot(document.getElementById('root')!).render(<React.StrictMode><WebIntro><App/></WebIntro></React.StrictMode>);
 
 if(import.meta.env.PROD&&'serviceWorker' in navigator){
